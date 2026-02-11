@@ -1,81 +1,83 @@
 // ============================================================
-// app.js — Main application init, route registration, sidebar
+// app.js — Main app init, routing, topic/definition/proof pages
 // ============================================================
 window.App = (() => {
 
   function init() {
     _setupRoutes();
-    _renderSidebar();
     Router.init();
   }
 
   function _setupRoutes() {
-    // Dashboard
     Router.register('dashboard', (container) => {
+      Dashboard._clearActionBar();
       Dashboard.render(container);
+      _activateNav('dashboard');
     });
 
-    // Review session
     Router.register('review', (container) => {
       Dashboard.renderReview(container);
+      _activateNav('review');
     });
 
-    // Progress page
     Router.register('progress', (container) => {
+      Dashboard._clearActionBar();
       Dashboard.renderProgress(container);
+      _activateNav('progress');
     });
 
-    // Topic view
     Router.register('topic/:courseId/:topicId', (container, params) => {
+      Dashboard._clearActionBar();
       _renderTopicPage(container, params.courseId, params.topicId);
     });
 
-    // Definition exercise view
-    Router.register('definition/:courseId/:defId', (container, params) => {
-      _renderDefinitionPage(container, params.courseId, params.defId);
+    Router.register('lesson/:courseId/:defId', (container, params) => {
+      _renderLessonPage(container, params.courseId, params.defId);
     });
 
-    // Proof view
     Router.register('proof/:courseId/:proofId', (container, params) => {
       _renderProofPage(container, params.courseId, params.proofId);
     });
 
-    // Visualization view
     Router.register('viz/:courseId/:topicId', (container, params) => {
+      Dashboard._clearActionBar();
       return Visualization.renderVisualization(container, params.courseId, params.topicId);
     });
   }
 
-  // ---- Page Renderers ----
+  function _activateNav(route) {
+    document.querySelectorAll('.topbar-nav a').forEach(a => {
+      a.classList.toggle('active', a.getAttribute('href') === '#' + route);
+    });
+    // Update review badge
+    const badge = document.getElementById('due-badge');
+    const count = SpacedRepetition.getDueCount();
+    if (badge) {
+      if (count > 0) { badge.textContent = count; badge.style.display = ''; }
+      else { badge.style.display = 'none'; }
+    }
+  }
+
+  // ==================== TOPIC PAGE ====================
 
   function _renderTopicPage(container, courseId, topicId) {
     const course = ContentRegistry.getCourse(courseId);
     const topic = ContentRegistry.getTopic(courseId, topicId);
-
     if (!course || !topic) {
-      container.innerHTML = '<div class="page-header"><h1>Topic Not Found</h1></div>';
+      container.innerHTML = '<div class="empty-state"><h2>Topic not found</h2></div>';
       return;
     }
 
     const status = Persistence.getTopicStatus(courseId, topicId);
+
+    // Locked check
     if (status === 'locked') {
       container.innerHTML = `
-        <div class="page-header">
-          <div class="breadcrumb"><a href="#dashboard">Dashboard</a> / ${_esc(course.name)}</div>
-          <h1>${_esc(topic.name)}</h1>
-        </div>
-        <div class="card">
-          <div class="card-body" style="text-align:center;padding:48px;">
-            <div style="font-size:48px;opacity:0.4;margin-bottom:12px;">&#128274;</div>
-            <h3 style="color:var(--text-secondary);margin-bottom:8px;">Topic Locked</h3>
-            <p style="color:var(--text-muted);">Complete prerequisite topics to unlock this one.</p>
-            <p style="color:var(--text-muted);font-size:13px;margin-top:8px;">
-              Prerequisites: ${(topic.prerequisites || []).map(pid => {
-                const pt = ContentRegistry.getTopic(courseId, pid);
-                return pt ? pt.name : pid;
-              }).join(', ')}
-            </p>
-          </div>
+        <div class="empty-state animate-slide-up">
+          <div class="empty-icon">&#128274;</div>
+          <h2>Topic Locked</h2>
+          <p>Complete the prerequisite topics to unlock ${_esc(topic.name)}.</p>
+          <a href="#dashboard" class="btn btn-secondary" style="display:inline-flex;">Back</a>
         </div>
       `;
       return;
@@ -84,199 +86,134 @@ window.App = (() => {
     const mastery = Persistence.getTopicDefinitionMastery(courseId, topicId);
 
     let html = `
-      <div class="page-header">
-        <div class="breadcrumb"><a href="#dashboard">Dashboard</a> / <a href="#dashboard">${_esc(course.name)}</a></div>
-        <h1>${_esc(topic.name)}</h1>
-        <p>${_esc(topic.description || '')}</p>
+      <div class="animate-slide-up">
+        <a href="#dashboard" class="back-btn" style="text-decoration:none;margin-bottom:12px;display:inline-flex;">
+          <span class="arrow">&#8592;</span> Back
+        </a>
       </div>
 
-      <div class="progress-label">
-        <span>Overall Mastery</span>
-        <span>${mastery}%</span>
-      </div>
-      <div class="progress-bar" style="margin-bottom: 28px;">
-        <div class="progress-fill ${mastery >= 80 ? 'green' : mastery >= 40 ? 'yellow' : 'red'}" style="width:${mastery}%"></div>
+      <div class="topic-header animate-slide-up">
+        <h1>${_esc(topic.name)}</h1>
+        <p style="color:var(--text-secondary);font-size:14px;margin-top:4px;">${_esc(topic.description || '')}</p>
+        <div class="topic-badge ${status === 'mastered' ? 'mastered' : mastery > 0 ? 'in-progress' : 'available'}">
+          ${status === 'mastered' ? '&#10003; Mastered' : mastery + '% mastery'}
+        </div>
       </div>
     `;
 
     // Definitions section
     if (topic.definitions && topic.definitions.length > 0) {
-      html += `
-        <div class="card">
-          <div class="card-header"><h2>Definitions</h2></div>
-          <div class="card-body">
-            <ul class="def-list">
-      `;
+      html += `<div class="topic-section animate-slide-up" style="animation-delay:0.1s;">
+        <div class="topic-section-header">Definitions</div>`;
+
       for (const def of topic.definitions) {
         const m = Persistence.getDefinitionMastery(courseId, def.id);
+        const iconClass = m.level >= 80 ? 'green' : m.level > 0 ? 'gold' : 'blue';
+        const icon = m.level >= 80 ? '&#10003;' : '&#9998;';
+
         html += `
-          <li class="def-item" style="cursor:pointer;" data-href="#definition/${courseId}/${def.id}">
-            <span class="def-name">${_esc(def.name)}</span>
-            <div class="def-mastery">
-              <div class="progress-bar" style="height:6px;">
-                <div class="progress-fill ${m.level >= 80 ? 'green' : m.level >= 40 ? 'yellow' : 'red'}" style="width:${m.level}%"></div>
-              </div>
-              <span style="font-size:11px;color:var(--text-muted);">${m.level}%</span>
+          <div class="topic-item" data-href="#lesson/${courseId}/${def.id}">
+            <div class="topic-item-icon ${iconClass}">${icon}</div>
+            <div class="topic-item-info">
+              <div class="topic-item-name">${_esc(def.name)}</div>
+              <div class="topic-item-detail">${m.level >= 80 ? 'Mastered' : m.reviews > 0 ? m.level + '% — tap to practice' : 'Start learning'}</div>
             </div>
-          </li>`;
+            <div class="topic-item-progress">
+              <div class="mini-progress">
+                <div class="mini-progress-fill ${m.level >= 80 ? 'green' : 'gold'}" style="width:${m.level}%"></div>
+              </div>
+            </div>
+          </div>
+        `;
       }
-      html += `</ul></div></div>`;
+      html += `</div>`;
     }
 
     // Proofs section
     if (topic.proofs && topic.proofs.length > 0) {
-      html += `
-        <div class="card">
-          <div class="card-header"><h2>Proofs</h2></div>
-          <div class="card-body">
-            <ul class="proof-list">
-      `;
+      html += `<div class="topic-section animate-slide-up" style="animation-delay:0.15s;">
+        <div class="topic-section-header">Proofs</div>`;
+
       for (const proof of topic.proofs) {
         const complete = Persistence.isProofComplete(proof.id, proof.steps.length);
         const progress = Persistence.getProofProgress(proof.id);
         const done = progress.completedSteps.length;
+        const iconClass = complete ? 'green' : done > 0 ? 'blue' : 'gray';
+        const icon = complete ? '&#10003;' : '&#128220;';
+
         html += `
-          <li class="proof-item" data-href="#proof/${courseId}/${proof.id}">
-            <span class="proof-name">${_esc(proof.name)}</span>
-            <span class="proof-status badge ${complete ? 'badge-success' : done > 0 ? 'badge-warning' : 'badge-muted'}">
-              ${complete ? 'Complete' : `${done}/${proof.steps.length} steps`}
-            </span>
-          </li>`;
+          <div class="topic-item" data-href="#proof/${courseId}/${proof.id}">
+            <div class="topic-item-icon ${iconClass}">${icon}</div>
+            <div class="topic-item-info">
+              <div class="topic-item-name">${_esc(proof.name)}</div>
+              <div class="topic-item-detail">${complete ? 'Completed' : done > 0 ? done + '/' + proof.steps.length + ' steps' : proof.steps.length + ' steps'}</div>
+            </div>
+          </div>
+        `;
       }
-      html += `</ul></div></div>`;
+      html += `</div>`;
     }
 
     // Visualization section
     const viz = ContentRegistry.getVisualization(courseId, topicId);
     if (viz) {
       const unlocked = Visualization.isUnlocked(courseId, topicId);
-      html += `
-        <div class="card">
-          <div class="card-header">
-            <h2>3D Visualization</h2>
-            <span class="badge ${unlocked ? 'badge-success' : 'badge-muted'}">${unlocked ? 'Unlocked' : 'Locked'}</span>
+      html += `<div class="topic-section animate-slide-up" style="animation-delay:0.2s;">
+        <div class="topic-section-header">3D Visualization</div>
+        <div class="topic-item" ${unlocked ? 'data-href="#viz/' + courseId + '/' + topicId + '"' : ''} style="${unlocked ? '' : 'opacity:0.5;cursor:not-allowed;'}">
+          <div class="topic-item-icon ${unlocked ? 'green' : 'gray'}">${unlocked ? '&#127912;' : '&#128274;'}</div>
+          <div class="topic-item-info">
+            <div class="topic-item-name">${_esc(viz.title || 'Interactive Visualization')}</div>
+            <div class="topic-item-detail">${unlocked ? 'Tap to explore in 3D' : 'Master definitions & complete proofs to unlock'}</div>
           </div>
-          <div class="card-body">
-            <p style="color:var(--text-secondary);font-size:14px;margin-bottom:12px;">${_esc(viz.title || '')}: ${_esc(viz.description || '')}</p>
-            <a href="#viz/${courseId}/${topicId}" class="btn ${unlocked ? 'btn-accent' : 'btn-secondary'}"
-              ${unlocked ? '' : 'style="opacity:0.5;pointer-events:none;"'}>
-              ${unlocked ? 'Open Visualization' : 'Complete requirements to unlock'}
-            </a>
+        </div>
       `;
 
       if (!unlocked) {
         const reqs = Visualization.getRequirements(courseId, topicId);
-        html += `<ul style="margin-top:10px;list-style:none;">`;
+        html += `<div style="padding:8px 20px 16px;">`;
         for (const r of reqs) {
-          html += `<li style="font-size:13px;padding:2px 0;color:${r.met ? 'var(--success)' : 'var(--text-muted)'};">
+          html += `<div style="font-size:13px;padding:2px 0;color:${r.met ? 'var(--green-dark)' : 'var(--text-secondary)'};">
             ${r.met ? '&#10003;' : '&#9675;'} ${_esc(r.label)} ${r.current ? '(' + r.current + ')' : ''}
-          </li>`;
+          </div>`;
         }
-        html += `</ul>`;
-      }
-
-      html += `</div></div>`;
-    }
-
-    container.innerHTML = html;
-
-    // Wire up clickable items
-    container.querySelectorAll('[data-href]').forEach(el => {
-      el.addEventListener('click', () => {
-        Router.navigate(el.dataset.href);
-      });
-    });
-  }
-
-  function _renderDefinitionPage(container, courseId, defId) {
-    const course = ContentRegistry.getCourse(courseId);
-    const def = ContentRegistry.getDefinition(courseId, defId);
-
-    if (!course || !def) {
-      container.innerHTML = '<div class="page-header"><h1>Definition Not Found</h1></div>';
-      return;
-    }
-
-    const topic = ContentRegistry.getTopic(courseId, def._topicId);
-
-    let html = `
-      <div class="page-header">
-        <div class="breadcrumb">
-          <a href="#dashboard">Dashboard</a> /
-          <a href="#topic/${courseId}/${def._topicId}">${_esc(topic ? topic.name : '')}</a>
-        </div>
-      </div>
-      <div id="definition-content"></div>
-    `;
-
-    container.innerHTML = html;
-    DefinitionEngine.renderDefinitionView(
-      container.querySelector('#definition-content'),
-      courseId,
-      def
-    );
-  }
-
-  function _renderProofPage(container, courseId, proofId) {
-    const course = ContentRegistry.getCourse(courseId);
-    const proof = ContentRegistry.getProof(courseId, proofId);
-
-    if (!course || !proof) {
-      container.innerHTML = '<div class="page-header"><h1>Proof Not Found</h1></div>';
-      return;
-    }
-
-    ProofEngine.renderProof(container, courseId, proof);
-  }
-
-  // ---- Sidebar ----
-
-  function _renderSidebar() {
-    const topicsContainer = document.getElementById('sidebar-topics');
-    if (!topicsContainer) return;
-
-    const courses = ContentRegistry.getAllCourses();
-    let html = '';
-
-    for (const course of courses) {
-      html += `<div class="sidebar-section">${_esc(course.name)}</div>`;
-      html += `<div class="sidebar-course">`;
-
-      for (const topic of (course.topics || [])) {
-        const status = Persistence.getTopicStatus(course.id, topic.id);
-        html += `
-          <a href="#topic/${course.id}/${topic.id}" class="topic-link">
-            <span class="topic-status ${status}"></span>
-            <span class="topic-text">${_esc(topic.name)}</span>
-          </a>
-        `;
+        html += `</div>`;
       }
 
       html += `</div>`;
     }
 
-    topicsContainer.innerHTML = html;
+    container.innerHTML = html;
 
-    // Update due badge
-    const dueCount = SpacedRepetition.getDueCount();
-    const badge = document.getElementById('due-badge');
-    if (badge) {
-      if (dueCount > 0) {
-        badge.textContent = dueCount;
-        badge.style.display = '';
-      } else {
-        badge.style.display = 'none';
-      }
+    // Wire up clicks
+    container.querySelectorAll('[data-href]').forEach(el => {
+      el.addEventListener('click', () => Router.navigate(el.dataset.href));
+    });
+  }
+
+  // ==================== LESSON PAGE ====================
+
+  function _renderLessonPage(container, courseId, defId) {
+    const def = ContentRegistry.getDefinition(courseId, defId);
+    if (!def) {
+      container.innerHTML = '<div class="empty-state"><h2>Definition not found</h2></div>';
+      return;
     }
+    DefinitionEngine.renderLesson(container, courseId, def);
   }
 
-  // ---- Helpers ----
+  // ==================== PROOF PAGE ====================
 
-  function _esc(text) {
-    const div = document.createElement('div');
-    div.textContent = text || '';
-    return div.innerHTML;
+  function _renderProofPage(container, courseId, proofId) {
+    const proof = ContentRegistry.getProof(courseId, proofId);
+    if (!proof) {
+      container.innerHTML = '<div class="empty-state"><h2>Proof not found</h2></div>';
+      return;
+    }
+    ProofEngine.renderProof(container, courseId, proof);
   }
+
+  function _esc(t) { const d = document.createElement('div'); d.textContent = t||''; return d.innerHTML; }
 
   return { init };
 })();

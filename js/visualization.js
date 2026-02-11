@@ -169,16 +169,19 @@ window.Visualization = (() => {
 
     const unlocked = isUnlocked(courseId, topicId);
 
+    const topic = ContentRegistry.getTopic(courseId, topicId);
+
     let html = `
-      <div class="card">
-        <div class="card-header">
-          <h3>${_esc(viz.title || '3D Visualization')}</h3>
-          ${unlocked
-            ? '<span class="badge badge-success">Unlocked</span>'
-            : '<span class="badge badge-muted">Locked</span>'}
-        </div>
-        <div class="card-body" style="padding: 0;">
-          <div class="viz-container" id="viz-canvas-container">
+      <div style="margin-bottom:20px;">
+        <a href="#topic/${courseId}/${topicId}" class="back-btn" style="text-decoration:none;display:inline-flex;">
+          <span class="arrow">&#8592;</span> Back to ${_esc(topic ? topic.name : 'Topic')}
+        </a>
+      </div>
+      <div class="section-header" style="margin-bottom:20px;">
+        <h1>${_esc(viz.title || '3D Visualization')}</h1>
+        <p>${_esc(viz.description || 'Explore the concept in 3D')}</p>
+      </div>
+      <div class="viz-container" id="viz-canvas-container">
     `;
 
     if (!unlocked) {
@@ -203,13 +206,10 @@ window.Visualization = (() => {
     if (unlocked) {
       html += `
         <div class="viz-controls">
-          <span>Click and drag to rotate. Scroll to zoom.</span>
-          ${viz.description ? '<span style="margin-left: auto; color: var(--text-muted);">' + _esc(viz.description) + '</span>' : ''}
+          Click and drag to rotate. Scroll to zoom. Right-click to pan.
         </div>
       `;
     }
-
-    html += `</div></div>`;
     container.innerHTML = html;
 
     // Initialize Three.js scene if unlocked
