@@ -101,7 +101,7 @@ window.DefinitionEngine = (() => {
                       step.vizScene ? 'Visualization' : 'Concept';
 
     // Highlight key terms in the body
-    let bodyHtml = _esc(step.body);
+    let bodyHtml = _esc(step.body).replace(/\n/g, '<br>');
     for (const term of step.keyTerms) {
       const escaped = term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
       const regex = new RegExp('(' + escaped + ')', 'gi');

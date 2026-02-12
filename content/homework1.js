@@ -261,7 +261,7 @@ window.HomeworkData = {
 // ==================== Q5: Independence with Parameter α ====================
 {
   id: 'hw1-q5',
-  name: 'Q5: Independence with Parameter \\(\\alpha\\)',
+  name: 'Q5: Independence with Parameter $\\alpha$',
   formalText: 'For which $\\alpha$ are $u_1 = (\\alpha, -1, -1)^T$, $u_2 = (-1, \\alpha, 0)^T$, $u_3 = (-1, -1, \\alpha)^T$ independent in $\\mathbb{R}^3$?',
   _topicId: 'hw1',
   _backRoute: 'homework',
