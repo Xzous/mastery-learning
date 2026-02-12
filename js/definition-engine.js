@@ -5,14 +5,19 @@ window.DefinitionEngine = (() => {
 
   /**
    * Build a lesson as an ordered array of steps.
-   * Phase 1 (teach): explanation slides shown before any questions.
-   * Phase 2 (test): multiple-choice questions.
+   *
+   * Supports two modes:
+   * 1. Classic: all teach slides first, then all test questions (shuffled).
+   * 2. Interleaved: each teach slide can embed an exercise via slide.exercise,
+   *    producing teach→test→teach→test flow. Any standalone exercises in
+   *    definition.exercises are appended at the end (not shuffled).
    */
   function _generateLesson(definition) {
     const steps = [];
+    const explanations = definition.explanations || [];
+    const hasInlineExercises = explanations.some(s => s.exercise);
 
-    // PHASE 1: TEACH — one step per explanation slide
-    for (const slide of (definition.explanations || [])) {
+    for (const slide of explanations) {
       steps.push({
         phase: 'teach',
         type: slide.type || 'concept',
@@ -24,11 +29,21 @@ window.DefinitionEngine = (() => {
         vizScene: slide.vizScene || null,
         vizConfig: slide.vizConfig || null
       });
+      // Interleaved: inline exercise right after its teach slide
+      if (slide.exercise && slide.exercise.choices && slide.exercise.choices.length > 0) {
+        steps.push({
+          phase: 'test',
+          prompt: slide.exercise.prompt,
+          choices: slide.exercise.choices,
+          correctIndex: slide.exercise.correctIndex,
+          explanation: slide.exercise.explanation || ''
+        });
+      }
     }
 
-    // PHASE 2: TEST — one step per MC exercise (shuffled order)
+    // Standalone exercises at the end
     const exercises = (definition.exercises || []).filter(ex => ex.choices && ex.choices.length > 0);
-    _shuffleArray(exercises);
+    if (!hasInlineExercises) _shuffleArray(exercises);
     for (const ex of exercises) {
       steps.push({
         phase: 'test',
