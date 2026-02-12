@@ -111,7 +111,7 @@ window.DefinitionEngine = (() => {
     container.innerHTML = `
       <div class="animate-slide-up">
         <div style="display:flex;align-items:center;gap:12px;margin-bottom:24px;">
-          <a href="#topic/${courseId}/${definition._topicId}" class="back-btn" style="text-decoration:none;">
+          <a href="#${definition._backRoute || 'topic/' + courseId + '/' + definition._topicId}" class="back-btn" style="text-decoration:none;">
             <span class="arrow">&#10005;</span>
           </a>
           <div class="lesson-progress" style="flex:1;max-width:none;">
@@ -159,7 +159,7 @@ window.DefinitionEngine = (() => {
     container.innerHTML = `
       <div class="animate-slide-up">
         <div style="display:flex;align-items:center;gap:12px;margin-bottom:24px;">
-          <a href="#topic/${courseId}/${definition._topicId}" class="back-btn" style="text-decoration:none;">
+          <a href="#${definition._backRoute || 'topic/' + courseId + '/' + definition._topicId}" class="back-btn" style="text-decoration:none;">
             <span class="arrow">&#10005;</span>
           </a>
           <div class="lesson-progress" style="flex:1;max-width:none;">
@@ -284,7 +284,7 @@ window.DefinitionEngine = (() => {
           <div class="completion-stat-label">Mastery</div>
         </div>
       </div>
-      <a href="#topic/${courseId}/${definition._topicId}" class="btn btn-primary" style="display:inline-flex;">Continue</a>
+      <a href="#${definition._backRoute || 'topic/' + courseId + '/' + definition._topicId}" class="btn btn-primary" style="display:inline-flex;">Continue</a>
     </div>`;
   }
 

@@ -1,7 +1,7 @@
 window.ContentRegistry.register({
   id: 'linear-algebra',
   name: 'Systems of Linear Equations',
-  description: 'Master systems of linear equations, matrix representations, and solution methods through Gaussian and Gauss-Jordan elimination.',
+  description: 'Master systems of linear equations, matrix operations, and solution methods including Gaussian elimination and matrix inverses.',
   topics: [
 
     // =========================================================================
@@ -1207,6 +1207,1000 @@ window.ContentRegistry.register({
         requiredProofs: ['proof-gaussian-elimination-example'],
         config: { matrix: [[1, -2], [-1, 3]] }
       }
+    },
+
+    // =========================================================================
+    // TOPIC 5: HOMOGENEOUS SYSTEMS
+    // =========================================================================
+    {
+      id: 'homogeneous-systems',
+      name: 'Homogeneous Systems',
+      description: 'Homogeneous systems $Ax = 0$, trivial vs. nontrivial solutions, and existence of nontrivial solutions when m < n.',
+      prerequisites: ['echelon-forms'],
+      definitions: [
+        {
+          id: 'def-homogeneous-system',
+          name: 'Homogeneous System',
+          formalText: 'A system of linear equations is homogeneous if every equation has constant term zero, i.e., the system has the form $Ax = 0$. The solution $x_1 = x_2 = \\cdots = x_n = 0$ is called the trivial solution. Any other solution is a nontrivial solution.',
+          explanations: [
+            {
+              type: 'intro',
+              title: 'What is a Homogeneous System?',
+              body: 'A homogeneous system is a special type of linear system where the right-hand side of every equation is zero. In matrix form we write $Ax = 0$, where $0$ is the zero vector.',
+              formula: '$$a_{11}x_1 + a_{12}x_2 + \\cdots + a_{1n}x_n = 0 \\\\ a_{21}x_1 + a_{22}x_2 + \\cdots + a_{2n}x_n = 0 \\\\ \\vdots \\\\ a_{m1}x_1 + a_{m2}x_2 + \\cdots + a_{mn}x_n = 0$$',
+              keyTerms: ['homogeneous', 'Ax = 0']
+            },
+            {
+              type: 'concept',
+              title: 'Why Are They Special?',
+              body: 'A homogeneous system is always consistent because setting every variable to zero always works: $A \\cdot 0 = 0$. This means we never need to ask "does a solution exist?" — one always does. The real question is whether there are other solutions beyond this obvious one.',
+              keyTerms: ['always consistent', 'zero solution']
+            },
+            {
+              type: 'concept',
+              title: 'Trivial vs. Nontrivial Solutions',
+              body: 'The trivial solution is $x_1 = x_2 = \\cdots = x_n = 0$. It is called "trivial" because it is obvious and uninteresting. A nontrivial solution is any solution where at least one variable is nonzero. Finding nontrivial solutions is the main goal when studying homogeneous systems.',
+              keyTerms: ['trivial solution', 'nontrivial solution']
+            },
+            {
+              type: 'example',
+              title: 'Example: A Homogeneous System',
+              body: 'Consider the system:\n$x_1 - 2x_2 + x_3 = 0$\n$2x_1 - x_2 + 3x_3 = 0$\n\nThe trivial solution is $(0, 0, 0)$. Row-reducing the augmented matrix $[[1,-2,1,0],[2,-1,3,0]]$ gives $[[1,0,5/3,0],[0,1,1/3,0]]$. Since $x_3$ is free, let $x_3 = t$: we get $x_1 = -\\frac{5}{3}t$, $x_2 = -\\frac{1}{3}t$. So there are infinitely many nontrivial solutions.',
+              keyTerms: ['free variable', 'nontrivial']
+            },
+            {
+              type: 'concept',
+              title: 'Recognizing Homogeneous Systems',
+              body: 'To check if a system is homogeneous, look at the augmented matrix: the last column (constants) must be all zeros. During row reduction, this column stays all zeros, so we can often just row-reduce $A$ itself.',
+              keyTerms: ['augmented matrix', 'zero column']
+            }
+          ],
+          atomicParts: [
+            { id: 'hs-part-form', text: 'a system with all constant terms equal to zero: $Ax = 0$', keywords: ['Ax = 0', 'constant terms zero'] },
+            { id: 'hs-part-trivial', text: 'the trivial solution is $x_1 = x_2 = \\cdots = x_n = 0$', keywords: ['trivial', 'all zero'] },
+            { id: 'hs-part-nontrivial', text: 'a nontrivial solution has at least one nonzero variable', keywords: ['nontrivial', 'nonzero'] },
+            { id: 'hs-part-consistent', text: 'every homogeneous system is consistent', keywords: ['always consistent'] }
+          ],
+          axioms: [],
+          exercises: [
+            {
+              type: 'mc',
+              prompt: 'A homogeneous system $Ax = 0$ always has:',
+              choices: [
+                'No solution',
+                'Exactly one solution',
+                'At least the trivial solution',
+                'Infinitely many solutions'
+              ],
+              correctIndex: 2,
+              explanation: 'Setting all variables to zero always satisfies $Ax = 0$, so the trivial solution always exists. The system may or may not have additional nontrivial solutions.'
+            },
+            {
+              type: 'mc',
+              prompt: 'Which of the following systems is homogeneous?',
+              choices: [
+                '$x + 2y = 3$, $3x - y = 1$',
+                '$x + 2y = 0$, $3x - y = 0$',
+                '$x + 2y = 0$, $3x - y = 5$',
+                '$x + 2y = 1$, $3x - y = 0$'
+              ],
+              correctIndex: 1,
+              explanation: 'A system is homogeneous when ALL constant terms (right-hand sides) are zero. Only the second system has both constants equal to zero.'
+            },
+            {
+              type: 'mc',
+              prompt: 'The trivial solution of the system $2x_1 - x_2 + 3x_3 = 0$, $x_1 + x_2 - x_3 = 0$ is:',
+              choices: [
+                '$(2, -1, 3)$',
+                '$(1, 1, -1)$',
+                '$(0, 0, 0)$',
+                'There is no trivial solution'
+              ],
+              correctIndex: 2,
+              explanation: 'The trivial solution is always $x_1 = x_2 = \\cdots = x_n = 0$, regardless of the coefficients.'
+            },
+            {
+              type: 'mc',
+              prompt: 'A homogeneous system can be inconsistent.',
+              choices: ['True', 'False'],
+              correctIndex: 1,
+              explanation: 'False. A homogeneous system is always consistent because the trivial solution ($x = 0$) always satisfies $Ax = 0$.'
+            }
+          ]
+        },
+        {
+          id: 'def-homogeneous-theorem',
+          name: 'Homogeneous System Theorem',
+          formalText: 'Theorem 1: (1) Every homogeneous system $Ax = 0$ is consistent. It has either only the trivial solution or infinitely many nontrivial solutions (in addition to the trivial one). (2) If $A$ is $m \\times n$ with $m < n$ (fewer equations than unknowns), then the system $Ax = 0$ has infinitely many solutions.',
+          explanations: [
+            {
+              type: 'intro',
+              title: 'The Main Theorem on Homogeneous Systems',
+              body: 'This theorem tells us exactly what can happen with a homogeneous system. There are only two possibilities, and the size of the coefficient matrix can guarantee which one occurs.',
+              keyTerms: ['theorem', 'two possibilities']
+            },
+            {
+              type: 'concept',
+              title: 'Part 1: Two Possibilities Only',
+              body: 'A homogeneous system $Ax = 0$ either has:\n(a) Only the trivial solution $x = 0$, or\n(b) Infinitely many solutions (the trivial solution plus infinitely many nontrivial solutions).\n\nThere is no middle ground — you cannot have exactly 2 or 3 nontrivial solutions. It is either none or infinitely many.',
+              keyTerms: ['trivial only', 'infinitely many']
+            },
+            {
+              type: 'concept',
+              title: 'Part 2: More Variables Than Equations',
+              body: 'If the system has fewer equations than variables ($m < n$), then there must be at least one free variable after row reduction. Each free variable can take any value, guaranteeing infinitely many nontrivial solutions.',
+              formula: '$$m < n \\implies \\text{infinitely many solutions}$$',
+              keyTerms: ['m < n', 'free variable', 'infinitely many']
+            },
+            {
+              type: 'example',
+              title: 'Example: 2 Equations, 4 Variables',
+              body: 'Consider a homogeneous system with 2 equations and 4 variables ($m=2$, $n=4$). After row reduction, there are at most 2 pivot columns. That leaves at least $4 - 2 = 2$ free variables. So the system must have infinitely many nontrivial solutions.',
+              keyTerms: ['pivot columns', 'free variables']
+            },
+            {
+              type: 'concept',
+              title: 'Why This Works',
+              body: 'Row reduction produces at most $m$ pivots (one per row). With $n$ columns of variables, if $m < n$ then $n - m > 0$ variables must be free. Free variables can take any real value, producing infinitely many solutions. This reasoning applies even without performing the actual row reduction.',
+              keyTerms: ['pivots', 'at most m', 'n - m free']
+            }
+          ],
+          atomicParts: [
+            { id: 'ht-part-consistent', text: 'every homogeneous system is consistent', keywords: ['consistent', 'always'] },
+            { id: 'ht-part-two-cases', text: 'either only trivial or infinitely many solutions', keywords: ['trivial', 'infinitely many', 'two cases'] },
+            { id: 'ht-part-m-less-n', text: 'if $m < n$ then infinitely many solutions', keywords: ['m < n', 'fewer equations', 'infinitely many'] },
+            { id: 'ht-part-free-vars', text: 'free variables guarantee nontrivial solutions', keywords: ['free variable', 'nontrivial'] }
+          ],
+          axioms: [],
+          exercises: [
+            {
+              type: 'mc',
+              prompt: 'A homogeneous system with 3 equations and 5 unknowns:',
+              choices: [
+                'May have only the trivial solution',
+                'Must have infinitely many solutions',
+                'Is always inconsistent',
+                'Has exactly 5 solutions'
+              ],
+              correctIndex: 1,
+              explanation: 'Since $m = 3 < 5 = n$, the theorem guarantees infinitely many solutions. There must be at least $5 - 3 = 2$ free variables.'
+            },
+            {
+              type: 'mc',
+              prompt: 'A homogeneous system can have exactly 3 nontrivial solutions.',
+              choices: ['True', 'False'],
+              correctIndex: 1,
+              explanation: 'False. A homogeneous system has either zero nontrivial solutions (only trivial) or infinitely many. There is no finite nonzero count possible.'
+            },
+            {
+              type: 'mc',
+              prompt: 'If $A$ is a $4 \\times 4$ matrix, what can we say about $Ax = 0$?',
+              choices: [
+                'It must have infinitely many solutions',
+                'It has only the trivial solution',
+                'It could have only the trivial or infinitely many solutions',
+                'It has no solution'
+              ],
+              correctIndex: 2,
+              explanation: 'When $m = n$, we cannot conclude which case occurs from size alone. We need to row-reduce $A$ to check if every variable is a pivot variable or if free variables exist.'
+            },
+            {
+              type: 'mc',
+              prompt: 'Why does $m < n$ guarantee nontrivial solutions for $Ax = 0$?',
+              choices: [
+                'Because the determinant is zero',
+                'Because row reduction produces at most $m$ pivots, leaving at least $n - m$ free variables',
+                'Because the system is inconsistent',
+                'Because the matrix is square'
+              ],
+              correctIndex: 1,
+              explanation: 'With $m$ rows, there can be at most $m$ pivots. Since there are $n > m$ variable columns, at least $n - m$ columns have no pivot, making those variables free.'
+            }
+          ]
+        }
+      ],
+      proofs: [],
+      visualization: null
+    },
+
+    // =========================================================================
+    // TOPIC 6: MATRIX OPERATIONS
+    // =========================================================================
+    {
+      id: 'matrix-operations',
+      name: 'Matrix Operations',
+      description: 'Matrix equality, addition, scalar multiplication, and matrix multiplication with inner-dimension matching.',
+      prerequisites: ['homogeneous-systems'],
+      definitions: [
+        {
+          id: 'def-matrix-equality',
+          name: 'Matrix Equality',
+          formalText: 'Two matrices $A$ and $B$ are equal (written $A = B$) if and only if they have the same size ($m \\times n$) and corresponding entries are equal: $a_{ij} = b_{ij}$ for all $1 \\leq i \\leq m$ and $1 \\leq j \\leq n$.',
+          explanations: [
+            {
+              type: 'intro',
+              title: 'When Are Two Matrices Equal?',
+              body: 'Two matrices are equal when they are identical in every way: same number of rows, same number of columns, and every single entry matches. If even one entry differs or the sizes are different, the matrices are not equal.',
+              keyTerms: ['equal', 'same size', 'same entries']
+            },
+            {
+              type: 'concept',
+              title: 'Both Conditions Must Hold',
+              body: 'Matrix equality requires two things simultaneously:\n1. Same dimensions: both must be $m \\times n$.\n2. Entry-by-entry match: $a_{ij} = b_{ij}$ for every position $(i, j)$.\n\nA $2 \\times 3$ matrix can never equal a $3 \\times 2$ matrix, even if they contain the same numbers.',
+              keyTerms: ['dimensions', 'entry-by-entry']
+            },
+            {
+              type: 'example',
+              title: 'Examples of Matrix Equality',
+              body: '$\\begin{bmatrix} 1 & 2 \\\\ 3 & 4 \\end{bmatrix} = \\begin{bmatrix} 1 & 2 \\\\ 3 & 4 \\end{bmatrix}$ (same size, same entries)\n\n$\\begin{bmatrix} 1 & 2 \\\\ 3 & 4 \\end{bmatrix} \\neq \\begin{bmatrix} 1 & 3 \\\\ 2 & 4 \\end{bmatrix}$ (same size, but entries differ)\n\n$\\begin{bmatrix} 1 & 2 & 3 \\end{bmatrix} \\neq \\begin{bmatrix} 1 \\\\ 2 \\\\ 3 \\end{bmatrix}$ (different sizes: $1 \\times 3$ vs. $3 \\times 1$)',
+              keyTerms: ['equal', 'not equal']
+            }
+          ],
+          atomicParts: [
+            { id: 'meq-part-size', text: 'equal matrices must have the same size $m \\times n$', keywords: ['same size', 'dimensions'] },
+            { id: 'meq-part-entries', text: '$a_{ij} = b_{ij}$ for all $i, j$', keywords: ['corresponding entries', 'all i,j'] }
+          ],
+          axioms: [],
+          exercises: [
+            {
+              type: 'mc',
+              prompt: 'If $A$ is $2 \\times 3$ and $B$ is $3 \\times 2$, can $A = B$?',
+              choices: [
+                'Yes, if they have the same entries',
+                'No, because they have different sizes',
+                'Yes, if one is the transpose of the other',
+                'Only if both are zero matrices'
+              ],
+              correctIndex: 1,
+              explanation: 'Matrix equality requires identical dimensions. A $2 \\times 3$ matrix can never equal a $3 \\times 2$ matrix, regardless of entries.'
+            },
+            {
+              type: 'mc',
+              prompt: '$\\begin{bmatrix} 1 & 2 \\\\ 3 & 4 \\end{bmatrix} = \\begin{bmatrix} 1 & 2 \\\\ 3 & x \\end{bmatrix}$ implies $x =$',
+              choices: ['$0$', '$2$', '$3$', '$4$'],
+              correctIndex: 3,
+              explanation: 'For the matrices to be equal, every entry must match. The entry in row 2, column 2 must satisfy $4 = x$, so $x = 4$.'
+            },
+            {
+              type: 'mc',
+              prompt: 'Two matrices with the same entries but different dimensions are:',
+              choices: [
+                'Always equal',
+                'Never equal',
+                'Equal if entries match in order',
+                'Equal only if both are square'
+              ],
+              correctIndex: 1,
+              explanation: 'Matrix equality requires both the same dimensions AND the same entries. Different dimensions alone means they cannot be equal.'
+            }
+          ]
+        },
+        {
+          id: 'def-matrix-addition-scalar',
+          name: 'Matrix Addition and Scalar Multiplication',
+          formalText: 'If $A$ and $B$ are both $m \\times n$ matrices, their sum is the $m \\times n$ matrix $A + B$ with entries $[a_{ij} + b_{ij}]$. Scalar multiplication: for a scalar $c$, the matrix $cA$ has entries $[ca_{ij}]$. Matrix subtraction is defined as $A - B = A + (-1)B$.',
+          explanations: [
+            {
+              type: 'intro',
+              title: 'Adding Matrices',
+              body: 'To add two matrices, simply add corresponding entries. The matrices must have the same size — you cannot add a $2 \\times 3$ matrix to a $3 \\times 2$ matrix.',
+              formula: '$$A + B = [a_{ij} + b_{ij}]$$',
+              keyTerms: ['addition', 'corresponding entries', 'same size']
+            },
+            {
+              type: 'example',
+              title: 'Matrix Addition Example',
+              body: '$\\begin{bmatrix} 1 & 2 \\\\ 3 & 4 \\end{bmatrix} + \\begin{bmatrix} 5 & 6 \\\\ 7 & 8 \\end{bmatrix} = \\begin{bmatrix} 1+5 & 2+6 \\\\ 3+7 & 4+8 \\end{bmatrix} = \\begin{bmatrix} 6 & 8 \\\\ 10 & 12 \\end{bmatrix}$',
+              keyTerms: ['entry-by-entry']
+            },
+            {
+              type: 'concept',
+              title: 'Scalar Multiplication',
+              body: 'To multiply a matrix by a scalar (a single number), multiply every entry by that scalar. The result has the same size as the original matrix.',
+              formula: '$$cA = [ca_{ij}]$$',
+              keyTerms: ['scalar', 'multiply every entry']
+            },
+            {
+              type: 'example',
+              title: 'Scalar Multiplication Example',
+              body: '$3 \\begin{bmatrix} 1 & -2 \\\\ 0 & 4 \\end{bmatrix} = \\begin{bmatrix} 3(1) & 3(-2) \\\\ 3(0) & 3(4) \\end{bmatrix} = \\begin{bmatrix} 3 & -6 \\\\ 0 & 12 \\end{bmatrix}$',
+              keyTerms: ['scalar', 'every entry']
+            },
+            {
+              type: 'concept',
+              title: 'Matrix Subtraction',
+              body: 'Subtraction is defined in terms of addition and scalar multiplication: $A - B = A + (-1)B$. In practice, you subtract corresponding entries: $[a_{ij} - b_{ij}]$.',
+              formula: '$$A - B = A + (-1)B = [a_{ij} - b_{ij}]$$',
+              keyTerms: ['subtraction', 'A + (-1)B']
+            },
+            {
+              type: 'concept',
+              title: 'Properties of Addition and Scalar Multiplication',
+              body: 'These operations satisfy familiar algebraic rules:\n$A + B = B + A$ (commutative)\n$(A + B) + C = A + (B + C)$ (associative)\n$c(A + B) = cA + cB$ (distributive)\n$(c + d)A = cA + dA$ (distributive)\n$c(dA) = (cd)A$ (associative for scalars)',
+              keyTerms: ['commutative', 'associative', 'distributive']
+            }
+          ],
+          atomicParts: [
+            { id: 'ma-part-add', text: '$A + B = [a_{ij} + b_{ij}]$, same size required', keywords: ['addition', 'same size', 'entry-by-entry'] },
+            { id: 'ma-part-scalar', text: '$cA = [ca_{ij}]$, multiply every entry by $c$', keywords: ['scalar', 'multiply', 'every entry'] },
+            { id: 'ma-part-subtract', text: '$A - B = A + (-1)B$', keywords: ['subtraction', '-1'] },
+            { id: 'ma-part-commutative', text: '$A + B = B + A$', keywords: ['commutative'] }
+          ],
+          axioms: [],
+          exercises: [
+            {
+              type: 'mc',
+              prompt: '$\\begin{bmatrix} 1 & 3 \\\\ 2 & 0 \\end{bmatrix} + \\begin{bmatrix} -1 & 2 \\\\ 4 & 5 \\end{bmatrix} =$',
+              choices: [
+                '$\\begin{bmatrix} 0 & 5 \\\\ 6 & 5 \\end{bmatrix}$',
+                '$\\begin{bmatrix} 2 & 1 \\\\ -2 & -5 \\end{bmatrix}$',
+                '$\\begin{bmatrix} 0 & 5 \\\\ 2 & 5 \\end{bmatrix}$',
+                '$\\begin{bmatrix} -1 & 6 \\\\ 8 & 0 \\end{bmatrix}$'
+              ],
+              correctIndex: 0,
+              explanation: 'Add entry by entry: $(1+(-1), 3+2; 2+4, 0+5) = (0, 5; 6, 5)$.'
+            },
+            {
+              type: 'mc',
+              prompt: '$2 \\begin{bmatrix} 3 & -1 \\\\ 0 & 4 \\end{bmatrix} =$',
+              choices: [
+                '$\\begin{bmatrix} 5 & 1 \\\\ 2 & 6 \\end{bmatrix}$',
+                '$\\begin{bmatrix} 6 & -2 \\\\ 0 & 8 \\end{bmatrix}$',
+                '$\\begin{bmatrix} 6 & -1 \\\\ 0 & 4 \\end{bmatrix}$',
+                '$\\begin{bmatrix} 3 & -1 \\\\ 0 & 8 \\end{bmatrix}$'
+              ],
+              correctIndex: 1,
+              explanation: 'Multiply every entry by 2: $2(3)=6$, $2(-1)=-2$, $2(0)=0$, $2(4)=8$.'
+            },
+            {
+              type: 'mc',
+              prompt: 'Can you add a $2 \\times 3$ matrix and a $2 \\times 2$ matrix?',
+              choices: [
+                'Yes, you get a $2 \\times 3$ matrix',
+                'Yes, you get a $2 \\times 2$ matrix',
+                'No, the matrices must have the same size',
+                'Yes, but only if entries are all positive'
+              ],
+              correctIndex: 2,
+              explanation: 'Matrix addition requires both matrices to have the exact same dimensions. A $2 \\times 3$ and $2 \\times 2$ matrix cannot be added.'
+            },
+            {
+              type: 'mc',
+              prompt: 'Matrix subtraction $A - B$ is defined as:',
+              choices: [
+                '$B - A$',
+                '$A + (-1)B$',
+                '$A \\cdot B^{-1}$',
+                '$(-1)A + B$'
+              ],
+              correctIndex: 1,
+              explanation: '$A - B$ is defined as $A + (-1)B$, which means adding $A$ to the matrix $(-1)B$ (every entry of $B$ negated).'
+            }
+          ]
+        },
+        {
+          id: 'def-matrix-multiplication',
+          name: 'Matrix Multiplication',
+          formalText: 'If $A$ is $m \\times r$ and $B$ is $r \\times n$, the product $AB$ is the $m \\times n$ matrix whose $(i,j)$-entry is $c_{ij} = \\sum_{k=1}^{r} a_{ik}b_{kj}$. This is the dot product of row $i$ of $A$ with column $j$ of $B$. The inner dimensions must match: the number of columns of $A$ must equal the number of rows of $B$.',
+          explanations: [
+            {
+              type: 'intro',
+              title: 'Multiplying Two Matrices',
+              body: 'Matrix multiplication is NOT entry-by-entry like addition. Instead, each entry of the product is computed as a dot product: row $i$ of $A$ dotted with column $j$ of $B$.',
+              formula: '$$c_{ij} = \\sum_{k=1}^{r} a_{ik}b_{kj} = a_{i1}b_{1j} + a_{i2}b_{2j} + \\cdots + a_{ir}b_{rj}$$',
+              keyTerms: ['row times column', 'dot product']
+            },
+            {
+              type: 'concept',
+              title: 'Dimension Requirement',
+              body: 'For $AB$ to be defined, the number of columns of $A$ must equal the number of rows of $B$. If $A$ is $m \\times r$ and $B$ is $r \\times n$, the product $AB$ is $m \\times n$.\n\nMemory aid: $(m \\times \\mathbf{r})(\\mathbf{r} \\times n) = m \\times n$. The inner dimensions ($r$) must match and they "cancel," leaving the outer dimensions.',
+              keyTerms: ['inner dimensions', 'must match', 'outer dimensions']
+            },
+            {
+              type: 'example',
+              title: 'Matrix Multiplication Example',
+              body: '$\\begin{bmatrix} 1 & 2 \\\\ 3 & 4 \\end{bmatrix} \\begin{bmatrix} 5 & 6 \\\\ 7 & 8 \\end{bmatrix}$\n\nRow 1 of $A$ $\\cdot$ Col 1 of $B$: $1(5)+2(7)=19$\nRow 1 of $A$ $\\cdot$ Col 2 of $B$: $1(6)+2(8)=22$\nRow 2 of $A$ $\\cdot$ Col 1 of $B$: $3(5)+4(7)=43$\nRow 2 of $A$ $\\cdot$ Col 2 of $B$: $3(6)+4(8)=50$\n\nResult: $\\begin{bmatrix} 19 & 22 \\\\ 43 & 50 \\end{bmatrix}$',
+              keyTerms: ['row-column product']
+            },
+            {
+              type: 'concept',
+              title: 'Non-Square Multiplication',
+              body: 'Matrices do not need to be square to be multiplied. A $2 \\times 3$ matrix times a $3 \\times 4$ matrix gives a $2 \\times 4$ matrix. But a $2 \\times 3$ times a $2 \\times 3$ is undefined because the inner dimensions ($3$ and $2$) do not match.',
+              keyTerms: ['non-square', 'inner dimensions']
+            },
+            {
+              type: 'example',
+              title: 'Non-Square Example',
+              body: '$\\begin{bmatrix} 1 & 0 & 2 \\end{bmatrix} \\begin{bmatrix} 3 \\\\ 1 \\\\ -1 \\end{bmatrix} = [1(3) + 0(1) + 2(-1)] = [1]$\n\nA $1 \\times 3$ matrix times a $3 \\times 1$ matrix gives a $1 \\times 1$ matrix (a scalar).',
+              keyTerms: ['row vector', 'column vector', 'scalar']
+            },
+            {
+              type: 'concept',
+              title: 'Order Matters',
+              body: 'Even when both $AB$ and $BA$ are defined, they are usually not equal: $AB \\neq BA$ in general. Matrix multiplication is not commutative. Also, $AB$ may be defined while $BA$ is not (if the dimensions do not match in reverse).',
+              keyTerms: ['non-commutative', 'order matters']
+            }
+          ],
+          atomicParts: [
+            { id: 'mm-part-formula', text: '$c_{ij} = \\sum_{k=1}^{r} a_{ik}b_{kj}$, row $i$ dot column $j$', keywords: ['dot product', 'row', 'column', 'sum'] },
+            { id: 'mm-part-dim', text: '$(m \\times r)(r \\times n) = m \\times n$, inner dimensions must match', keywords: ['inner dimensions', 'match', 'm x n'] },
+            { id: 'mm-part-not-commutative', text: '$AB \\neq BA$ in general', keywords: ['not commutative', 'order matters'] }
+          ],
+          axioms: [],
+          exercises: [
+            {
+              type: 'mc',
+              prompt: 'If $A$ is $3 \\times 2$ and $B$ is $2 \\times 4$, what is the size of $AB$?',
+              choices: ['$2 \\times 2$', '$3 \\times 4$', '$3 \\times 2$', '$4 \\times 3$'],
+              correctIndex: 1,
+              explanation: '$(3 \\times \\mathbf{2})(\\mathbf{2} \\times 4) = 3 \\times 4$. The inner dimensions (both 2) match and cancel, leaving the outer dimensions.'
+            },
+            {
+              type: 'mc',
+              prompt: 'The entry $c_{ij}$ in $AB$ is computed by:',
+              choices: [
+                'Multiplying $a_{ij}$ by $b_{ij}$',
+                'Adding row $i$ of $A$ to column $j$ of $B$',
+                'Dotting row $i$ of $A$ with column $j$ of $B$',
+                'Multiplying column $i$ of $A$ by row $j$ of $B$'
+              ],
+              correctIndex: 2,
+              explanation: '$c_{ij} = \\sum_{k=1}^{r} a_{ik}b_{kj}$, which is the dot product of row $i$ of $A$ with column $j$ of $B$.'
+            },
+            {
+              type: 'mc',
+              prompt: '$\\begin{bmatrix} 1 & 0 \\\\ 0 & 1 \\end{bmatrix} \\begin{bmatrix} 3 & 5 \\\\ 7 & 9 \\end{bmatrix} =$',
+              choices: [
+                '$\\begin{bmatrix} 3 & 0 \\\\ 0 & 9 \\end{bmatrix}$',
+                '$\\begin{bmatrix} 3 & 5 \\\\ 7 & 9 \\end{bmatrix}$',
+                '$\\begin{bmatrix} 1 & 0 \\\\ 0 & 1 \\end{bmatrix}$',
+                '$\\begin{bmatrix} 10 & 5 \\\\ 7 & 10 \\end{bmatrix}$'
+              ],
+              correctIndex: 1,
+              explanation: 'The identity matrix times any matrix gives that matrix back: $I \\cdot B = B$.'
+            },
+            {
+              type: 'mc',
+              prompt: 'Can you multiply a $2 \\times 3$ matrix by a $2 \\times 3$ matrix?',
+              choices: [
+                'Yes, the result is $2 \\times 3$',
+                'Yes, the result is $3 \\times 2$',
+                'No, inner dimensions $3$ and $2$ do not match',
+                'Yes, the result is $2 \\times 2$'
+              ],
+              correctIndex: 2,
+              explanation: 'For $AB$: $A$ is $2 \\times 3$ and $B$ is $2 \\times 3$. The inner dimensions are $3$ (columns of $A$) and $2$ (rows of $B$), which do not match. The product is undefined.'
+            }
+          ]
+        }
+      ],
+      proofs: [],
+      visualization: null
+    },
+
+    // =========================================================================
+    // TOPIC 7: MATRIX PROPERTIES
+    // =========================================================================
+    {
+      id: 'matrix-properties',
+      name: 'Matrix Properties',
+      description: 'Special matrices, properties of matrix multiplication, and the transpose operation.',
+      prerequisites: ['matrix-operations'],
+      definitions: [
+        {
+          id: 'def-special-matrices',
+          name: 'Special Matrices',
+          formalText: 'The zero matrix $0_{m \\times n}$ has every entry equal to zero. The identity matrix $I_n$ is the $n \\times n$ matrix with $1$s on the diagonal and $0$s elsewhere. A diagonal matrix $diag(d_1, \\ldots, d_n)$ has entries only on the main diagonal. The trace of a square matrix $A$ is $tr(A) = a_{11} + a_{22} + \\cdots + a_{nn}$, the sum of diagonal entries.',
+          explanations: [
+            {
+              type: 'intro',
+              title: 'Named Matrices',
+              body: 'Certain matrices appear so frequently that they have special names. Knowing these matrices and their properties is essential for the rest of linear algebra.',
+              keyTerms: ['special matrices', 'named matrices']
+            },
+            {
+              type: 'concept',
+              title: 'The Zero Matrix',
+              body: 'The zero matrix $0_{m \\times n}$ is the $m \\times n$ matrix where every single entry is $0$. It acts like the number zero in arithmetic: $A + 0 = A$ for any matrix $A$ of the same size.',
+              example: '$0_{2 \\times 2} = \\begin{bmatrix} 0 & 0 \\\\ 0 & 0 \\end{bmatrix}$, $0_{2 \\times 3} = \\begin{bmatrix} 0 & 0 & 0 \\\\ 0 & 0 & 0 \\end{bmatrix}$',
+              keyTerms: ['zero matrix', 'additive identity']
+            },
+            {
+              type: 'concept',
+              title: 'The Identity Matrix',
+              body: 'The identity matrix $I_n$ is the $n \\times n$ square matrix with $1$s on the main diagonal and $0$s everywhere else. It acts like the number 1 in multiplication: $AI_n = I_mA = A$ whenever the sizes are compatible.',
+              example: '$I_2 = \\begin{bmatrix} 1 & 0 \\\\ 0 & 1 \\end{bmatrix}$, $I_3 = \\begin{bmatrix} 1 & 0 & 0 \\\\ 0 & 1 & 0 \\\\ 0 & 0 & 1 \\end{bmatrix}$',
+              keyTerms: ['identity matrix', 'multiplicative identity', 'I_n']
+            },
+            {
+              type: 'concept',
+              title: 'Diagonal Matrices and Trace',
+              body: 'A diagonal matrix has nonzero entries only on the main diagonal (positions $a_{11}, a_{22}, \\ldots, a_{nn}$). Written $diag(d_1, d_2, \\ldots, d_n)$. The trace of a square matrix is the sum of its diagonal entries: $tr(A) = a_{11} + a_{22} + \\cdots + a_{nn}$.',
+              example: '$diag(2, -1, 5) = \\begin{bmatrix} 2 & 0 & 0 \\\\ 0 & -1 & 0 \\\\ 0 & 0 & 5 \\end{bmatrix}$\n$tr(diag(2,-1,5)) = 2 + (-1) + 5 = 6$',
+              keyTerms: ['diagonal', 'trace', 'sum of diagonal']
+            },
+            {
+              type: 'example',
+              title: 'Trace Calculation',
+              body: 'For $A = \\begin{bmatrix} 3 & 1 & 4 \\\\ 1 & 5 & 9 \\\\ 2 & 6 & 7 \\end{bmatrix}$:\n\n$tr(A) = a_{11} + a_{22} + a_{33} = 3 + 5 + 7 = 15$\n\nNote: only the diagonal entries matter for the trace, not the off-diagonal entries.',
+              keyTerms: ['trace', 'diagonal entries']
+            }
+          ],
+          atomicParts: [
+            { id: 'sm-part-zero', text: '$0_{m \\times n}$: every entry is zero, $A + 0 = A$', keywords: ['zero matrix', 'all zeros'] },
+            { id: 'sm-part-identity', text: '$I_n$: $1$s on diagonal, $0$s elsewhere, $AI = IA = A$', keywords: ['identity', 'ones on diagonal'] },
+            { id: 'sm-part-diagonal', text: '$diag(d_1,\\ldots,d_n)$: nonzero entries only on the main diagonal', keywords: ['diagonal', 'main diagonal'] },
+            { id: 'sm-part-trace', text: '$tr(A) = a_{11} + a_{22} + \\cdots + a_{nn}$ for square $A$', keywords: ['trace', 'sum', 'diagonal'] }
+          ],
+          axioms: [],
+          exercises: [
+            {
+              type: 'mc',
+              prompt: 'What is $tr\\left(\\begin{bmatrix} 2 & 7 \\\\ 3 & -5 \\end{bmatrix}\\right)$?',
+              choices: ['$10$', '$-3$', '$7$', '$2$'],
+              correctIndex: 1,
+              explanation: '$tr(A) = a_{11} + a_{22} = 2 + (-5) = -3$. The trace sums only the diagonal entries.'
+            },
+            {
+              type: 'mc',
+              prompt: 'The identity matrix $I_3$ has the property:',
+              choices: [
+                'All entries are 1',
+                'Diagonal entries are 1, all others are 0',
+                'It is a $3 \\times 1$ matrix',
+                'Its trace is 0'
+              ],
+              correctIndex: 1,
+              explanation: '$I_3$ has $1$s at positions $(1,1)$, $(2,2)$, $(3,3)$ and $0$s everywhere else. Its trace is $1+1+1=3$.'
+            },
+            {
+              type: 'mc',
+              prompt: 'For any $3 \\times 3$ matrix $A$, what is $A + 0_{3 \\times 3}$?',
+              choices: ['$0_{3 \\times 3}$', '$A$', '$2A$', 'Undefined'],
+              correctIndex: 1,
+              explanation: 'Adding the zero matrix to any matrix leaves it unchanged: $A + 0 = A$, just like $a + 0 = a$ for numbers.'
+            },
+            {
+              type: 'mc',
+              prompt: 'Which of the following is a diagonal matrix?',
+              choices: [
+                '$\\begin{bmatrix} 1 & 2 \\\\ 0 & 3 \\end{bmatrix}$',
+                '$\\begin{bmatrix} 4 & 0 \\\\ 0 & -1 \\end{bmatrix}$',
+                '$\\begin{bmatrix} 0 & 1 \\\\ 1 & 0 \\end{bmatrix}$',
+                '$\\begin{bmatrix} 1 & 1 \\\\ 1 & 1 \\end{bmatrix}$'
+              ],
+              correctIndex: 1,
+              explanation: 'A diagonal matrix has all off-diagonal entries equal to zero. Only $\\begin{bmatrix} 4 & 0 \\\\ 0 & -1 \\end{bmatrix}$ satisfies this.'
+            }
+          ]
+        },
+        {
+          id: 'def-matrix-mult-properties',
+          name: 'Properties of Matrix Multiplication',
+          formalText: 'Matrix multiplication satisfies: (1) Associativity: $A(BC) = (AB)C$. (2) Left distributivity: $A(B+C) = AB + AC$. (3) Right distributivity: $(A+B)C = AC + BC$. (4) Scalar compatibility: $c(AB) = (cA)B = A(cB)$. However, matrix multiplication is NOT commutative: $AB \\neq BA$ in general. Also, $AI_n = I_mA = A$ for compatible identity matrices.',
+          explanations: [
+            {
+              type: 'intro',
+              title: 'Algebraic Properties of Matrix Multiplication',
+              body: 'Matrix multiplication obeys many familiar arithmetic rules, but with one critical exception: it is NOT commutative. The order in which you multiply matrices matters.',
+              keyTerms: ['properties', 'non-commutative']
+            },
+            {
+              type: 'axiom',
+              title: 'Associativity',
+              body: 'Matrix multiplication is associative: $A(BC) = (AB)C$. You can group the multiplication in any order without changing the result. This means we can write $ABC$ without ambiguity.',
+              example: 'For any compatible matrices $A$, $B$, $C$:\n$(AB)C = A(BC)$\nSo we simply write $ABC$.'
+            },
+            {
+              type: 'axiom',
+              title: 'Distributivity',
+              body: 'Multiplication distributes over addition from both sides:\nLeft: $A(B + C) = AB + AC$\nRight: $(A + B)C = AC + BC$\n\nNote: the order matters! $A$ stays on the left in the left-distributive law.',
+              example: '$A(B + C) = AB + AC$ (A multiplies from the left)\n$(A + B)C = AC + BC$ (C multiplies from the right)'
+            },
+            {
+              type: 'concept',
+              title: 'Non-Commutativity: $AB \\neq BA$',
+              body: 'This is the most important difference from ordinary arithmetic. For matrices, $AB$ and $BA$ are generally different, and sometimes one product exists while the other does not.',
+              example: '$A = \\begin{bmatrix} 1 & 2 \\\\ 0 & 0 \\end{bmatrix}$, $B = \\begin{bmatrix} 0 & 0 \\\\ 3 & 4 \\end{bmatrix}$\n$AB = \\begin{bmatrix} 6 & 8 \\\\ 0 & 0 \\end{bmatrix}$, $BA = \\begin{bmatrix} 0 & 0 \\\\ 3 & 6 \\end{bmatrix}$\n$AB \\neq BA$',
+              keyTerms: ['non-commutative', 'AB \\neq BA']
+            },
+            {
+              type: 'concept',
+              title: 'The Identity Property',
+              body: 'The identity matrix is the multiplicative identity: $AI_n = A$ and $I_mA = A$, where the subscripts must match the dimensions of $A$. This is analogous to $a \\cdot 1 = 1 \\cdot a = a$ for numbers.',
+              keyTerms: ['identity', 'AI = A']
+            },
+            {
+              type: 'concept',
+              title: 'Scalar Compatibility',
+              body: 'Scalars can move freely through matrix products: $c(AB) = (cA)B = A(cB)$. You can multiply the scalar into either factor without changing the result.',
+              formula: '$$c(AB) = (cA)B = A(cB)$$',
+              keyTerms: ['scalar', 'compatibility']
+            }
+          ],
+          atomicParts: [
+            { id: 'mp-part-assoc', text: '$A(BC) = (AB)C$', keywords: ['associative'] },
+            { id: 'mp-part-distrib', text: '$A(B+C) = AB+AC$ and $(A+B)C = AC+BC$', keywords: ['distributive'] },
+            { id: 'mp-part-noncomm', text: '$AB \\neq BA$ in general (non-commutative)', keywords: ['non-commutative', 'not equal'] },
+            { id: 'mp-part-identity', text: '$AI_n = I_mA = A$', keywords: ['identity', 'multiplicative'] },
+            { id: 'mp-part-scalar', text: '$c(AB) = (cA)B = A(cB)$', keywords: ['scalar', 'compatibility'] }
+          ],
+          axioms: [
+            { id: 'ax-noncommutative', label: 'Non-Commutativity', statement: '$AB \\neq BA$ in general', counterexample: { set: '$A=\\begin{bmatrix}1&2\\\\0&0\\end{bmatrix}$, $B=\\begin{bmatrix}0&0\\\\3&4\\end{bmatrix}$', explanation: '$AB=\\begin{bmatrix}6&8\\\\0&0\\end{bmatrix}$ but $BA=\\begin{bmatrix}0&0\\\\3&6\\end{bmatrix}$' } }
+          ],
+          exercises: [
+            {
+              type: 'mc',
+              prompt: 'Which property does matrix multiplication NOT satisfy?',
+              choices: [
+                'Associativity: $A(BC) = (AB)C$',
+                'Commutativity: $AB = BA$',
+                'Left distributivity: $A(B+C) = AB+AC$',
+                'Right distributivity: $(A+B)C = AC+BC$'
+              ],
+              correctIndex: 1,
+              explanation: 'Matrix multiplication is NOT commutative. $AB \\neq BA$ in general. It does satisfy associativity and both distributive laws.'
+            },
+            {
+              type: 'mc',
+              prompt: 'If $A$ is $3 \\times 3$, what is $AI_3$?',
+              choices: ['$I_3$', '$A$', '$3A$', '$A^2$'],
+              correctIndex: 1,
+              explanation: 'The identity matrix is the multiplicative identity: $AI_n = A$ for any compatible matrix $A$.'
+            },
+            {
+              type: 'mc',
+              prompt: '$A(B + C) = $',
+              choices: ['$AB + C$', '$AB + AC$', '$A + BC$', '$(A + B)(A + C)$'],
+              correctIndex: 1,
+              explanation: 'Matrix multiplication distributes over addition: $A(B+C) = AB + AC$.'
+            },
+            {
+              type: 'mc',
+              prompt: 'If $AB = 0$ (zero matrix), can we conclude $A = 0$ or $B = 0$?',
+              choices: [
+                'Yes, just like with real numbers',
+                'No, both $A$ and $B$ can be nonzero and still have $AB = 0$',
+                'Only if $A$ is square',
+                'Only if $B$ is the identity'
+              ],
+              correctIndex: 1,
+              explanation: 'Unlike real numbers, matrix multiplication can give zero even when neither factor is zero. For example: $\\begin{bmatrix}1&0\\\\0&0\\end{bmatrix}\\begin{bmatrix}0&0\\\\1&0\\end{bmatrix} = \\begin{bmatrix}0&0\\\\0&0\\end{bmatrix}$.'
+            }
+          ]
+        },
+        {
+          id: 'def-transpose',
+          name: 'Transpose of a Matrix',
+          formalText: 'The transpose of an $m \\times n$ matrix $A$, written $A^T$, is the $n \\times m$ matrix obtained by interchanging rows and columns: the $(i,j)$-entry of $A^T$ is $a_{ji}$. Properties: $(A^T)^T = A$, $(A+B)^T = A^T + B^T$, $(cA)^T = cA^T$, $(AB)^T = B^TA^T$. A matrix is symmetric if $A = A^T$ and skew-symmetric if $A^T = -A$.',
+          explanations: [
+            {
+              type: 'intro',
+              title: 'What is a Transpose?',
+              body: 'The transpose of a matrix flips it over its main diagonal: rows become columns and columns become rows. If $A$ is $m \\times n$, then $A^T$ is $n \\times m$.',
+              formula: '$$(A^T)_{ij} = a_{ji}$$',
+              keyTerms: ['transpose', 'rows to columns']
+            },
+            {
+              type: 'example',
+              title: 'Transpose Example',
+              body: '$A = \\begin{bmatrix} 1 & 2 & 3 \\\\ 4 & 5 & 6 \\end{bmatrix}$ (a $2 \\times 3$ matrix)\n\n$A^T = \\begin{bmatrix} 1 & 4 \\\\ 2 & 5 \\\\ 3 & 6 \\end{bmatrix}$ (a $3 \\times 2$ matrix)\n\nRow 1 of $A$ became column 1 of $A^T$, and row 2 of $A$ became column 2 of $A^T$.',
+              keyTerms: ['flip', 'rows become columns']
+            },
+            {
+              type: 'concept',
+              title: 'Properties of the Transpose',
+              body: 'The transpose satisfies these important rules:\n1. $(A^T)^T = A$ — transposing twice gives you back the original.\n2. $(A + B)^T = A^T + B^T$ — transpose of a sum is the sum of transposes.\n3. $(cA)^T = cA^T$ — scalars pass through the transpose.\n4. $(AB)^T = B^TA^T$ — the transpose of a product reverses the order!',
+              keyTerms: ['double transpose', 'product reversal']
+            },
+            {
+              type: 'concept',
+              title: 'The Shoe-Sock Rule: $(AB)^T = B^TA^T$',
+              body: 'The most surprising property is that the transpose of a product reverses the order. Like putting on socks and shoes: if $AB$ is "socks then shoes," then $(AB)^T = B^TA^T$ is "shoes then socks." This extends: $(ABC)^T = C^TB^TA^T$.',
+              keyTerms: ['reverse order', 'shoe-sock']
+            },
+            {
+              type: 'concept',
+              title: 'Symmetric and Skew-Symmetric Matrices',
+              body: 'A square matrix is symmetric if $A = A^T$ (it equals its own transpose). This means $a_{ij} = a_{ji}$ — the matrix is mirrored across the diagonal. A matrix is skew-symmetric if $A^T = -A$, meaning $a_{ij} = -a_{ji}$. Diagonal entries of a skew-symmetric matrix must be zero.',
+              example: 'Symmetric: $\\begin{bmatrix} 1 & 3 \\\\ 3 & 5 \\end{bmatrix}$\nSkew-symmetric: $\\begin{bmatrix} 0 & 2 \\\\ -2 & 0 \\end{bmatrix}$',
+              keyTerms: ['symmetric', 'skew-symmetric']
+            },
+            {
+              type: 'example',
+              title: 'Verifying Symmetry',
+              body: '$A = \\begin{bmatrix} 2 & -1 & 3 \\\\ -1 & 5 & 0 \\\\ 3 & 0 & 7 \\end{bmatrix}$\n\n$A^T = \\begin{bmatrix} 2 & -1 & 3 \\\\ -1 & 5 & 0 \\\\ 3 & 0 & 7 \\end{bmatrix} = A$\n\nSince $A = A^T$, this matrix is symmetric. Notice the mirror symmetry across the main diagonal.',
+              keyTerms: ['symmetric', 'A = A^T']
+            }
+          ],
+          atomicParts: [
+            { id: 'tr-part-def', text: '$A^T$ interchanges rows and columns: $(A^T)_{ij} = a_{ji}$', keywords: ['transpose', 'interchange', 'rows', 'columns'] },
+            { id: 'tr-part-double', text: '$(A^T)^T = A$', keywords: ['double transpose'] },
+            { id: 'tr-part-sum', text: '$(A+B)^T = A^T + B^T$', keywords: ['sum', 'transpose'] },
+            { id: 'tr-part-product', text: '$(AB)^T = B^TA^T$ (order reverses)', keywords: ['product', 'reverse order'] },
+            { id: 'tr-part-symmetric', text: 'symmetric: $A = A^T$; skew-symmetric: $A^T = -A$', keywords: ['symmetric', 'skew-symmetric'] }
+          ],
+          axioms: [],
+          exercises: [
+            {
+              type: 'mc',
+              prompt: 'If $A$ is $3 \\times 5$, then $A^T$ is:',
+              choices: ['$3 \\times 5$', '$5 \\times 3$', '$5 \\times 5$', '$3 \\times 3$'],
+              correctIndex: 1,
+              explanation: 'Transposing an $m \\times n$ matrix gives an $n \\times m$ matrix. So a $3 \\times 5$ becomes $5 \\times 3$.'
+            },
+            {
+              type: 'mc',
+              prompt: '$(AB)^T =$',
+              choices: ['$A^TB^T$', '$B^TA^T$', '$BA$', '$(BA)^T$'],
+              correctIndex: 1,
+              explanation: 'The transpose of a product reverses the order: $(AB)^T = B^TA^T$. This is the "shoe-sock" rule.'
+            },
+            {
+              type: 'mc',
+              prompt: 'A matrix $A$ is symmetric if:',
+              choices: [
+                '$A = -A$',
+                '$A = A^T$',
+                '$A = A^{-1}$',
+                '$A = I$'
+              ],
+              correctIndex: 1,
+              explanation: 'A symmetric matrix equals its own transpose: $A = A^T$, meaning $a_{ij} = a_{ji}$ for all entries.'
+            },
+            {
+              type: 'mc',
+              prompt: 'The diagonal entries of a skew-symmetric matrix must be:',
+              choices: ['$1$', 'Positive', '$0$', 'Negative'],
+              correctIndex: 2,
+              explanation: 'If $A^T = -A$, then $a_{ii} = -a_{ii}$, which implies $2a_{ii} = 0$, so $a_{ii} = 0$.'
+            }
+          ]
+        }
+      ],
+      proofs: [],
+      visualization: null
+    },
+
+    // =========================================================================
+    // TOPIC 8: MATRIX INVERSE
+    // =========================================================================
+    {
+      id: 'matrix-inverse',
+      name: 'Matrix Inverse',
+      description: 'Invertible (nonsingular) matrices, finding inverses by row reduction, and the properties of matrix inverses.',
+      prerequisites: ['matrix-properties'],
+      definitions: [
+        {
+          id: 'def-inverse-matrix',
+          name: 'Inverse of a Matrix',
+          formalText: 'An $n \\times n$ matrix $A$ is invertible (nonsingular) if there exists a matrix $B$ such that $AB = BA = I_n$. The matrix $B$ is called the inverse of $A$ and is written $A^{-1}$. If no such $B$ exists, $A$ is called singular (noninvertible).',
+          explanations: [
+            {
+              type: 'intro',
+              title: 'What is a Matrix Inverse?',
+              body: 'Just as the number $5$ has a multiplicative inverse $\\frac{1}{5}$ (because $5 \\cdot \\frac{1}{5} = 1$), a square matrix $A$ may have an inverse $A^{-1}$ such that $AA^{-1} = A^{-1}A = I_n$. The identity matrix $I_n$ plays the role of the number $1$.',
+              keyTerms: ['inverse', 'invertible', 'A^{-1}']
+            },
+            {
+              type: 'concept',
+              title: 'Invertible vs. Singular',
+              body: 'A matrix that has an inverse is called invertible or nonsingular. A matrix that does NOT have an inverse is called singular or noninvertible. Only square matrices can be invertible (though not all square matrices are).',
+              keyTerms: ['invertible', 'nonsingular', 'singular', 'noninvertible']
+            },
+            {
+              type: 'concept',
+              title: 'Uniqueness of the Inverse',
+              body: 'If a matrix $A$ has an inverse, that inverse is unique. There is only one matrix $B$ satisfying $AB = BA = I_n$. This is why we write "the" inverse $A^{-1}$ rather than "an" inverse.',
+              keyTerms: ['unique', 'the inverse']
+            },
+            {
+              type: 'example',
+              title: 'Example: A $2 \\times 2$ Inverse',
+              body: 'Let $A = \\begin{bmatrix} 2 & 1 \\\\ 5 & 3 \\end{bmatrix}$. Its inverse is $A^{-1} = \\begin{bmatrix} 3 & -1 \\\\ -5 & 2 \\end{bmatrix}$.\n\nVerification: $AA^{-1} = \\begin{bmatrix} 2(3)+1(-5) & 2(-1)+1(2) \\\\ 5(3)+3(-5) & 5(-1)+3(2) \\end{bmatrix} = \\begin{bmatrix} 1 & 0 \\\\ 0 & 1 \\end{bmatrix} = I_2$',
+              keyTerms: ['verify', 'AA^{-1} = I']
+            },
+            {
+              type: 'example',
+              title: 'Example: A Singular Matrix',
+              body: '$A = \\begin{bmatrix} 1 & 2 \\\\ 2 & 4 \\end{bmatrix}$ is singular. Row 2 is $2 \\times$ Row 1, so the rows are linearly dependent. No matrix $B$ exists with $AB = I_2$. Intuitively, $A$ "collapses" two dimensions into one, and this loss of information cannot be undone.',
+              keyTerms: ['singular', 'no inverse']
+            }
+          ],
+          atomicParts: [
+            { id: 'inv-part-def', text: '$A$ is invertible if $AB = BA = I_n$ for some $B = A^{-1}$', keywords: ['invertible', 'AB = I', 'BA = I'] },
+            { id: 'inv-part-singular', text: 'singular (noninvertible) means no inverse exists', keywords: ['singular', 'noninvertible'] },
+            { id: 'inv-part-unique', text: 'the inverse is unique if it exists', keywords: ['unique'] },
+            { id: 'inv-part-square', text: 'only square matrices can be invertible', keywords: ['square', 'n x n'] }
+          ],
+          axioms: [],
+          exercises: [
+            {
+              type: 'mc',
+              prompt: 'A matrix $A$ is invertible if:',
+              choices: [
+                '$A^2 = A$',
+                '$A + A^{-1} = I$',
+                '$AA^{-1} = A^{-1}A = I_n$',
+                '$A = A^T$'
+              ],
+              correctIndex: 2,
+              explanation: 'By definition, $A$ is invertible if there exists $A^{-1}$ such that $AA^{-1} = A^{-1}A = I_n$.'
+            },
+            {
+              type: 'mc',
+              prompt: 'A singular matrix is one that:',
+              choices: [
+                'Has an inverse',
+                'Is the identity matrix',
+                'Does not have an inverse',
+                'Is symmetric'
+              ],
+              correctIndex: 2,
+              explanation: 'Singular means noninvertible — the matrix has no inverse.'
+            },
+            {
+              type: 'mc',
+              prompt: 'Can a $3 \\times 4$ matrix be invertible?',
+              choices: [
+                'Yes, if its entries are nonzero',
+                'Yes, if it is in RREF',
+                'No, only square matrices can be invertible',
+                'Yes, if its rank is 3'
+              ],
+              correctIndex: 2,
+              explanation: 'Invertibility is defined only for square ($n \\times n$) matrices. A $3 \\times 4$ matrix is not square and cannot have an inverse.'
+            },
+            {
+              type: 'mc',
+              prompt: 'If $A$ is invertible, how many matrices $B$ satisfy $AB = I$?',
+              choices: [
+                'None',
+                'Exactly one',
+                'Exactly two',
+                'Infinitely many'
+              ],
+              correctIndex: 1,
+              explanation: 'The inverse is unique. There is exactly one matrix $B = A^{-1}$ satisfying $AB = BA = I$.'
+            }
+          ]
+        },
+        {
+          id: 'def-finding-inverse',
+          name: 'Finding the Inverse by Row Reduction',
+          formalText: 'To find $A^{-1}$ for an $n \\times n$ matrix $A$: form the augmented matrix $[A \\mid I_n]$ and row-reduce. If the left side reduces to $I_n$, then the right side becomes $A^{-1}$: $[A \\mid I_n] \\to [I_n \\mid A^{-1}]$. If the left side cannot be reduced to $I_n$ (a row of zeros appears on the left), then $A$ is singular and has no inverse.',
+          explanations: [
+            {
+              type: 'intro',
+              title: 'The Row Reduction Method',
+              body: 'To find the inverse of a matrix $A$, we use a systematic method based on row reduction. We augment $A$ with the identity matrix and row-reduce. The same row operations that turn $A$ into $I$ will simultaneously turn $I$ into $A^{-1}$.',
+              formula: '$$[A \\mid I_n] \\xrightarrow{\\text{row reduce}} [I_n \\mid A^{-1}]$$',
+              keyTerms: ['augment', 'row reduce', '[A | I]']
+            },
+            {
+              type: 'concept',
+              title: 'Why Does This Work?',
+              body: 'Each row operation is equivalent to multiplying on the left by an elementary matrix. If a sequence of row operations transforms $A$ into $I$, then $E_k \\cdots E_2 E_1 A = I$. Applying the same operations to $I$ gives $E_k \\cdots E_2 E_1 I = E_k \\cdots E_2 E_1 = A^{-1}$.',
+              keyTerms: ['elementary matrices', 'left multiplication']
+            },
+            {
+              type: 'example',
+              title: 'Finding an Inverse: Step by Step',
+              body: 'Find $A^{-1}$ for $A = \\begin{bmatrix} 1 & 2 \\\\ 3 & 7 \\end{bmatrix}$.\n\nAugment: $\\left[\\begin{array}{cc|cc} 1 & 2 & 1 & 0 \\\\ 3 & 7 & 0 & 1 \\end{array}\\right]$\n$R_2 \\to R_2 - 3R_1$: $\\left[\\begin{array}{cc|cc} 1 & 2 & 1 & 0 \\\\ 0 & 1 & -3 & 1 \\end{array}\\right]$\n$R_1 \\to R_1 - 2R_2$: $\\left[\\begin{array}{cc|cc} 1 & 0 & 7 & -2 \\\\ 0 & 1 & -3 & 1 \\end{array}\\right]$\n\nSo $A^{-1} = \\begin{bmatrix} 7 & -2 \\\\ -3 & 1 \\end{bmatrix}$.',
+              keyTerms: ['augment', 'row reduce', 'inverse']
+            },
+            {
+              type: 'concept',
+              title: 'Detecting Singular Matrices',
+              body: 'During row reduction, if a row of all zeros appears on the left side of $[A \\mid I_n]$, the left side can never become $I_n$. This means $A$ is singular and has no inverse. You can stop the process at that point.',
+              example: '$\\left[\\begin{array}{cc|cc} 1 & 2 & 1 & 0 \\\\ 2 & 4 & 0 & 1 \\end{array}\\right] \\to \\left[\\begin{array}{cc|cc} 1 & 2 & 1 & 0 \\\\ 0 & 0 & -2 & 1 \\end{array}\\right]$\nRow of zeros on the left: $A$ is singular!',
+              keyTerms: ['singular', 'row of zeros', 'no inverse']
+            },
+            {
+              type: 'concept',
+              title: 'Properties of the Inverse',
+              body: 'Key properties:\n$(A^{-1})^{-1} = A$ — inverting twice returns to the original.\n$(AB)^{-1} = B^{-1}A^{-1}$ — the inverse of a product reverses order.\n$(A^T)^{-1} = (A^{-1})^T$ — transpose and inverse commute.\n$(cA)^{-1} = \\frac{1}{c}A^{-1}$ for $c \\neq 0$.',
+              keyTerms: ['double inverse', 'product inverse', 'transpose inverse']
+            }
+          ],
+          atomicParts: [
+            { id: 'fi-part-method', text: 'row-reduce $[A \\mid I_n]$ to $[I_n \\mid A^{-1}]$', keywords: ['augment', 'row reduce', 'identity'] },
+            { id: 'fi-part-singular', text: 'if left side cannot become $I_n$, $A$ is singular', keywords: ['singular', 'row of zeros', 'cannot'] },
+            { id: 'fi-part-product', text: '$(AB)^{-1} = B^{-1}A^{-1}$ (reverse order)', keywords: ['product', 'inverse', 'reverse'] },
+            { id: 'fi-part-transpose', text: '$(A^T)^{-1} = (A^{-1})^T$', keywords: ['transpose', 'inverse', 'commute'] }
+          ],
+          axioms: [],
+          exercises: [
+            {
+              type: 'mc',
+              prompt: 'To find $A^{-1}$, you row-reduce:',
+              choices: [
+                '$[A \\mid 0]$',
+                '$[A \\mid A]$',
+                '$[A \\mid I_n]$',
+                '$[I_n \\mid A]$'
+              ],
+              correctIndex: 2,
+              explanation: 'The method augments $A$ with the identity matrix on the right: $[A \\mid I_n]$. Row-reducing transforms this to $[I_n \\mid A^{-1}]$.'
+            },
+            {
+              type: 'mc',
+              prompt: 'During the row reduction of $[A \\mid I]$, a row of zeros appears on the left. This means:',
+              choices: [
+                '$A^{-1}$ is the zero matrix',
+                '$A$ is invertible',
+                '$A$ is singular (no inverse exists)',
+                'You need to continue reducing'
+              ],
+              correctIndex: 2,
+              explanation: 'If the left side has a zero row, it cannot be reduced to $I_n$. Therefore $A$ is singular and has no inverse.'
+            },
+            {
+              type: 'mc',
+              prompt: '$(AB)^{-1} =$',
+              choices: [
+                '$A^{-1}B^{-1}$',
+                '$B^{-1}A^{-1}$',
+                '$BA$',
+                '$(BA)^{-1}$'
+              ],
+              correctIndex: 1,
+              explanation: 'The inverse of a product reverses the order: $(AB)^{-1} = B^{-1}A^{-1}$. This is analogous to the transpose rule $(AB)^T = B^TA^T$.'
+            },
+            {
+              type: 'mc',
+              prompt: 'If $A = \\begin{bmatrix} 1 & 2 \\\\ 3 & 7 \\end{bmatrix}$, which augmented matrix do you start with?',
+              choices: [
+                '$\\left[\\begin{array}{cc|cc} 1 & 2 & 0 & 0 \\\\ 3 & 7 & 0 & 0 \\end{array}\\right]$',
+                '$\\left[\\begin{array}{cc|cc} 1 & 0 & 1 & 2 \\\\ 0 & 1 & 3 & 7 \\end{array}\\right]$',
+                '$\\left[\\begin{array}{cc|cc} 1 & 2 & 1 & 0 \\\\ 3 & 7 & 0 & 1 \\end{array}\\right]$',
+                '$\\left[\\begin{array}{cc|c} 1 & 2 & 0 \\\\ 3 & 7 & 0 \\end{array}\\right]$'
+              ],
+              correctIndex: 2,
+              explanation: 'Place $A$ on the left and $I_2$ on the right: $[A \\mid I_2] = \\left[\\begin{array}{cc|cc} 1 & 2 & 1 & 0 \\\\ 3 & 7 & 0 & 1 \\end{array}\\right]$.'
+            }
+          ]
+        }
+      ],
+      proofs: [
+        {
+          id: 'proof-finding-inverse',
+          name: 'Finding an Inverse by Row Reduction',
+          description: 'Find the inverse of $A = \\begin{bmatrix} 1 & 2 \\\\ 3 & 7 \\end{bmatrix}$ using the augmented matrix method.',
+          prerequisites: ['def-finding-inverse'],
+          steps: [
+            {
+              type: 'state-goal',
+              prompt: 'Set up the augmented matrix $[A \\mid I_2]$.',
+              expected: '$\\left[\\begin{array}{cc|cc} 1 & 2 & 1 & 0 \\\\ 3 & 7 & 0 & 1 \\end{array}\\right]$',
+              keywords: ['augment', '1,2,1,0', '3,7,0,1'],
+              hints: ['Place $A$ on the left and $I_2$ on the right, separated by a vertical bar.']
+            },
+            {
+              type: 'justify',
+              prompt: 'Eliminate the $3$ below the leading $1$ in column 1.',
+              expected: '$R_2 \\to R_2 - 3R_1$: $\\left[\\begin{array}{cc|cc} 1 & 2 & 1 & 0 \\\\ 0 & 1 & -3 & 1 \\end{array}\\right]$',
+              keywords: ['R2 - 3R1', '0,1,-3,1'],
+              hints: ['Subtract $3$ times row 1 from row 2.']
+            },
+            {
+              type: 'justify',
+              prompt: 'Eliminate the $2$ above the leading $1$ in column 2.',
+              expected: '$R_1 \\to R_1 - 2R_2$: $\\left[\\begin{array}{cc|cc} 1 & 0 & 7 & -2 \\\\ 0 & 1 & -3 & 1 \\end{array}\\right]$',
+              keywords: ['R1 - 2R2', '1,0,7,-2'],
+              hints: ['Subtract $2$ times row 2 from row 1.']
+            },
+            {
+              type: 'conclude',
+              prompt: 'Read off the inverse.',
+              expected: '$A^{-1} = \\begin{bmatrix} 7 & -2 \\\\ -3 & 1 \\end{bmatrix}$',
+              keywords: ['7,-2', '-3,1', 'inverse'],
+              hints: ['The right side of the augmented matrix is now $A^{-1}$.']
+            }
+          ]
+        }
+      ],
+      visualization: null
     }
 
   ]

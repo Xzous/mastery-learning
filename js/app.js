@@ -15,9 +15,14 @@ window.App = (() => {
       _activateNav('dashboard');
     });
 
-    Router.register('review', (container) => {
-      Dashboard.renderReview(container);
-      _activateNav('review');
+    Router.register('homework', (container) => {
+      Dashboard._clearActionBar();
+      Dashboard.renderHomework(container);
+      _activateNav('homework');
+    });
+
+    Router.register('hw/:hwId/:questionId', (container, params) => {
+      return _renderHWQuestionPage(container, params.hwId, params.questionId);
     });
 
     Router.register('progress', (container) => {
@@ -49,13 +54,6 @@ window.App = (() => {
     document.querySelectorAll('.topbar-nav a').forEach(a => {
       a.classList.toggle('active', a.getAttribute('href') === '#' + route);
     });
-    // Update review badge
-    const badge = document.getElementById('due-badge');
-    const count = SpacedRepetition.getDueCount();
-    if (badge) {
-      if (count > 0) { badge.textContent = count; badge.style.display = ''; }
-      else { badge.style.display = 'none'; }
-    }
   }
 
   // ==================== TOPIC PAGE ====================
@@ -211,6 +209,24 @@ window.App = (() => {
       return;
     }
     ProofEngine.renderProof(container, courseId, proof);
+  }
+
+  // ==================== HOMEWORK QUESTION PAGE ====================
+
+  function _renderHWQuestionPage(container, hwId, questionId) {
+    const hw = window.HomeworkData && window.HomeworkData[hwId];
+    if (!hw) {
+      container.innerHTML = '<div class="empty-state"><h2>Homework not found</h2></div>';
+      return;
+    }
+    const question = hw.questions.find(q => q.id === questionId);
+    if (!question) {
+      container.innerHTML = '<div class="empty-state"><h2>Question not found</h2></div>';
+      return;
+    }
+    // Ensure _topicId is set for DefinitionEngine's back link
+    question._topicId = question._topicId || hwId;
+    return DefinitionEngine.renderLesson(container, hwId, question);
   }
 
   function _esc(t) { const d = document.createElement('div'); d.textContent = t||''; return d.innerHTML; }
