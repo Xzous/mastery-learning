@@ -93,125 +93,252 @@ window.Dashboard = (() => {
     return html;
   }
 
-  // ==================== REVIEW ====================
+  // ==================== REVIEW (Duolingo-style MC) ====================
 
   function renderReview(container) {
     const cards = SpacedRepetition.getReviewSession(20);
     _updateBadge(cards.length);
 
     if (cards.length === 0) {
+      _clearActionBar();
       container.innerHTML = `<div class="empty-state animate-slide-up">
         <div class="empty-icon">&#127881;</div>
         <h2>All caught up!</h2>
         <p>No cards due for review right now. Nice work!</p>
-        <a href="#dashboard" class="btn btn-primary">Back to Learning</a>
+        <a href="#dashboard" class="btn btn-primary" style="display:inline-flex;">Back to Learning</a>
+      </div>`;
+      return;
+    }
+
+    // Group due cards by definition, then build MC questions from each def's exercises
+    const defGroups = {};
+    for (const card of cards) {
+      const key = card.courseId + ':' + card.definitionId;
+      if (!defGroups[key]) {
+        defGroups[key] = { courseId: card.courseId, definitionId: card.definitionId, definitionName: card.definitionName, cards: [] };
+      }
+      defGroups[key].cards.push(card);
+    }
+
+    const reviewQuestions = [];
+    for (const key of Object.keys(defGroups)) {
+      const group = defGroups[key];
+      const def = ContentRegistry.getDefinition(group.courseId, group.definitionId);
+      if (!def || !def.exercises || def.exercises.length === 0) continue;
+
+      // Pick exercises proportional to due cards (at least 1, at most def.exercises.length)
+      const available = def.exercises.filter(ex => ex.choices && ex.choices.length > 0);
+      if (available.length === 0) continue;
+
+      const count = Math.min(Math.max(1, Math.ceil(group.cards.length / 2)), available.length);
+      const picked = _shuffleArr(available.slice()).slice(0, count);
+
+      for (const ex of picked) {
+        reviewQuestions.push({
+          courseId: group.courseId,
+          definitionId: group.definitionId,
+          definitionName: group.definitionName,
+          srCards: group.cards,
+          prompt: ex.prompt,
+          choices: ex.choices,
+          correctIndex: ex.correctIndex,
+          explanation: ex.explanation || ''
+        });
+      }
+    }
+
+    _shuffleArr(reviewQuestions);
+
+    if (reviewQuestions.length === 0) {
+      _clearActionBar();
+      container.innerHTML = `<div class="empty-state animate-slide-up">
+        <div class="empty-icon">&#128218;</div>
+        <h2>No review exercises available</h2>
+        <p>Complete some lessons first to build your review deck.</p>
+        <a href="#dashboard" class="btn btn-primary" style="display:inline-flex;">Back to Learning</a>
       </div>`;
       return;
     }
 
     let idx = 0;
     let correct = 0;
+    const total = reviewQuestions.length;
 
-    function showCard() {
-      if (idx >= cards.length) {
-        _showReviewComplete(container, correct, cards.length);
+    function showQuestion() {
+      if (idx >= total) {
+        _showReviewComplete(container, correct, total);
         return;
       }
 
-      const card = cards[idx];
-      const pct = Math.round((idx / cards.length) * 100);
+      const q = reviewQuestions[idx];
+      const pct = Math.round((idx / total) * 100);
+
+      // Shuffle choices while tracking correct answer
+      const shuffled = q.choices.map((text, origIdx) => ({ text, origIdx }));
+      _shuffleArr(shuffled);
+      const shuffledCorrectIdx = shuffled.findIndex(c => c.origIdx === q.correctIndex);
 
       container.innerHTML = `
-        <div class="review-header animate-slide-up">
-          <div class="lesson-progress" style="max-width:100%;margin-bottom:16px;">
-            <div class="lesson-progress-fill" style="width:${pct}%"></div>
+        <div class="animate-slide-up">
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:24px;">
+            <a href="#dashboard" class="back-btn" style="text-decoration:none;">
+              <span class="arrow">&#10005;</span>
+            </a>
+            <div class="lesson-progress" style="flex:1;max-width:none;">
+              <div class="lesson-progress-fill" style="width:${pct}%"></div>
+            </div>
+            <span style="font-size:14px;font-weight:700;color:var(--text-secondary);">${idx + 1}/${total}</span>
           </div>
-          <span class="review-tag">${_esc(card.definitionName)}</span>
-          <h2>${_esc(card.prompt)}</h2>
         </div>
-        <div class="lesson-card animate-slide-up" style="animation-delay:0.1s;">
-          <textarea class="answer-input" id="review-input" rows="3"
-            placeholder="Type your answer..."></textarea>
+        <div class="slide-counter" style="margin-bottom:4px;">${_esc(q.definitionName)}</div>
+        <div class="lesson-card animate-slide-up" style="animation-delay:0.05s;">
+          <div class="lesson-prompt">${_esc(q.prompt)}</div>
+          <div class="mc-choices" id="mc-choices">
+            ${shuffled.map((c, i) => `
+              <button class="mc-tile" data-index="${i}">
+                <span class="mc-letter">${String.fromCharCode(65 + i)}</span>
+                <span class="mc-text">${_esc(c.text)}</span>
+              </button>
+            `).join('')}
+          </div>
         </div>
         <div id="review-feedback"></div>
       `;
 
-      // Action bar
+      _renderMath(container);
+
+      let selectedIndex = null;
+
       _setActionBar(`
-        <button class="btn btn-check" id="review-check">Check</button>
+        <button class="btn btn-check" id="review-check" disabled>Check</button>
       `);
 
-      const input = container.querySelector('#review-input');
-      input.focus();
+      // Wire tile selection
+      container.querySelectorAll('.mc-tile').forEach(tile => {
+        tile.addEventListener('click', () => {
+          if (tile.classList.contains('locked')) return;
+          container.querySelectorAll('.mc-tile').forEach(t => t.classList.remove('selected'));
+          tile.classList.add('selected');
+          selectedIndex = parseInt(tile.dataset.index);
+          document.getElementById('review-check').disabled = false;
+        });
+      });
 
       document.getElementById('review-check').addEventListener('click', () => {
-        const value = input.value.trim();
-        if (!value) return;
+        if (selectedIndex === null) return;
 
-        const kwResult = Utils.keywordMatch(value, card.keywords || []);
-        const simScore = Utils.slidingWindowSimilarity(value, card.reference);
-        const score = kwResult.score * 0.6 + simScore * 0.4;
+        const isCorrect = selectedIndex === shuffledCorrectIdx;
+        const score = isCorrect ? 1.0 : 0.0;
         const quality = SpacedRepetition.scoreToQuality(score);
-        let mistakeType = null;
-        if (score < 0.6) mistakeType = kwResult.matched.length === 0 ? 'omission' : 'partial';
+        const mistakeType = isCorrect ? null : 'partial';
 
-        SpacedRepetition.reviewCard(card.id, quality, mistakeType);
-        Persistence.updateDefinitionMastery(card.courseId, card.definitionId, score);
+        // Update all SR cards for this definition
+        for (const card of q.srCards) {
+          SpacedRepetition.reviewCard(card.id, quality, mistakeType);
+        }
+        Persistence.updateDefinitionMastery(q.courseId, q.definitionId, score);
+        if (!isCorrect) {
+          const def = ContentRegistry.getDefinition(q.courseId, q.definitionId);
+          if (def) Persistence.recordError(q.courseId, def._topicId, 'partial');
+        }
 
-        const isCorrect = score >= 0.7;
         if (isCorrect) correct++;
 
-        input.classList.add(isCorrect ? 'correct' : 'incorrect');
-        input.disabled = true;
+        // Lock tiles and highlight
+        container.querySelectorAll('.mc-tile').forEach(t => {
+          t.classList.add('locked');
+          if (parseInt(t.dataset.index) === shuffledCorrectIdx) t.classList.add('correct');
+          if (parseInt(t.dataset.index) === selectedIndex && !isCorrect) t.classList.add('incorrect');
+        });
 
+        // Feedback
         const fb = container.querySelector('#review-feedback');
         if (isCorrect) {
           fb.innerHTML = `<div class="feedback-bar correct animate-slide-up">
-            <span class="feedback-icon">&#128079;</span>
-            <div>Great recall!</div>
+            <span class="feedback-icon">&#127881;</span>
+            <div>${_randomPraise()}</div>
           </div>`;
+          _setActionBar(`
+            <button class="btn btn-continue correct-btn" id="review-next">Continue</button>
+          `);
         } else {
           fb.innerHTML = `<div class="feedback-bar incorrect animate-slide-up">
             <span class="feedback-icon">&#128161;</span>
-            <div>Correct answer:
-              <div class="feedback-detail">${_esc(card.reference)}</div>
+            <div>
+              Correct answer: ${_esc(q.choices[q.correctIndex])}
+              ${q.explanation ? '<div class="feedback-detail">' + _esc(q.explanation) + '</div>' : ''}
             </div>
           </div>`;
+          _setActionBar(`
+            <button class="btn btn-continue incorrect-btn" id="review-next">Got It</button>
+          `);
         }
 
-        _setActionBar(`
-          <button class="btn btn-continue ${isCorrect ? 'correct-btn' : 'incorrect-btn'}" id="review-next">Continue</button>
-        `);
-
+        _renderMath(fb);
         document.getElementById('review-next').addEventListener('click', () => {
           idx++;
-          showCard();
+          showQuestion();
         });
       });
     }
 
-    showCard();
+    showQuestion();
   }
 
   function _showReviewComplete(container, correct, total) {
     _clearActionBar();
-    const pct = Math.round((correct / total) * 100);
+    const pct = total > 0 ? Math.round((correct / total) * 100) : 0;
+
+    let icon = '&#128218;';
+    let title = 'Keep practicing!';
+    if (pct >= 90) { icon = '&#127942;'; title = 'Amazing!'; }
+    else if (pct >= 70) { icon = '&#128170;'; title = 'Great job!'; }
+    else if (pct >= 50) { icon = '&#128077;'; title = 'Good effort!'; }
+
     container.innerHTML = `<div class="completion-screen animate-bounce">
-      <div class="completion-icon">${pct >= 80 ? '&#127942;' : pct >= 50 ? '&#128170;' : '&#128218;'}</div>
-      <div class="completion-title">Review Complete!</div>
-      <div class="completion-subtitle">You reviewed ${total} cards</div>
+      <div class="completion-icon">${icon}</div>
+      <div class="completion-title">${title}</div>
+      <div class="completion-subtitle">Review Complete — ${total} questions</div>
       <div class="completion-stats">
         <div class="completion-stat">
           <div class="completion-stat-value">${pct}%</div>
           <div class="completion-stat-label">Accuracy</div>
         </div>
         <div class="completion-stat">
-          <div class="completion-stat-value">${correct}</div>
+          <div class="completion-stat-value">${correct}/${total}</div>
           <div class="completion-stat-label">Correct</div>
         </div>
       </div>
-      <a href="#dashboard" class="btn btn-primary">Continue</a>
+      <a href="#dashboard" class="btn btn-primary" style="display:inline-flex;">Continue</a>
     </div>`;
+  }
+
+  // ==================== REVIEW HELPERS ====================
+
+  function _shuffleArr(arr) {
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  }
+
+  function _randomPraise() {
+    const phrases = ['Excellent!', 'Well done!', 'Nailed it!', 'Perfect!', 'Spot on!', 'Great recall!', 'Impressive!'];
+    return phrases[Math.floor(Math.random() * phrases.length)];
+  }
+
+  /** Call KaTeX auto-render on a container element if available */
+  function _renderMath(el) {
+    if (typeof renderMathInElement === 'function') {
+      renderMathInElement(el, {
+        delimiters: [
+          { left: '$$', right: '$$', display: true },
+          { left: '$', right: '$', display: false }
+        ],
+        throwOnError: false
+      });
+    }
   }
 
   // ==================== PROGRESS ====================

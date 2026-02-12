@@ -280,6 +280,9 @@ window.Visualization = (() => {
       case 'rank-nullity':
         _buildRankNullityScene(scene, viz.config);
         break;
+      case 'linear-system-2d':
+        _buildLinearSystem2DScene(scene, viz.config);
+        break;
     }
 
     // Animation loop
@@ -591,6 +594,82 @@ window.Visualization = (() => {
 
     // Rank-Nullity equation label
     _addLabel(scene, `dim=${n} = rank ${rank} + nullity ${nullity}`, new THREE.Vector3(0, 2, 0), 0xbc8cff);
+  }
+
+  // ==================== LINEAR SYSTEM 2D SCENE ====================
+
+  function _buildLinearSystem2DScene(scene, config) {
+    // Show three cases: intersecting, parallel, coincident lines
+    const systems = (config && config.systems) || [
+      { eq1: [1, 1, 3], eq2: [1, -1, -1], label: 'Unique solution' },
+      { eq1: [1, 1, 3], eq2: [1, 1, 1], label: 'No solution' },
+      { eq1: [1, 1, 3], eq2: [2, 2, 6], label: 'Infinitely many' }
+    ];
+
+    const colors = [0x58a6ff, 0xf85149, 0x3fb950];
+    const offsets = [-4, 0, 4];
+
+    systems.forEach((sys, idx) => {
+      const ox = offsets[idx];
+      const color1 = 0x58a6ff;
+      const color2 = 0xd29922;
+
+      // Draw each equation as a line on the xz-plane (y=0)
+      // ax + bz = c => z = (c - ax) / b
+      function linePoints(eq, range) {
+        const pts = [];
+        const [a, b, c] = eq;
+        for (let x = -range; x <= range; x += 0.1) {
+          if (Math.abs(b) > 1e-10) {
+            const z = (c - a * x) / b;
+            if (Math.abs(z) <= range) pts.push(new THREE.Vector3(x + ox, 0.05, z));
+          } else if (Math.abs(a) > 1e-10) {
+            const xv = c / a;
+            pts.push(new THREE.Vector3(xv + ox, 0.05, x));
+          }
+        }
+        return pts;
+      }
+
+      const pts1 = linePoints(sys.eq1, 3);
+      const pts2 = linePoints(sys.eq2, 3);
+
+      if (pts1.length > 1) {
+        const geo1 = new THREE.BufferGeometry().setFromPoints(pts1);
+        scene.add(new THREE.Line(geo1, new THREE.LineBasicMaterial({ color: color1, linewidth: 2 })));
+      }
+      if (pts2.length > 1) {
+        const geo2 = new THREE.BufferGeometry().setFromPoints(pts2);
+        scene.add(new THREE.Line(geo2, new THREE.LineBasicMaterial({ color: color2, linewidth: 2 })));
+      }
+
+      // Intersection point for unique solution case
+      const [a1, b1, c1] = sys.eq1;
+      const [a2, b2, c2] = sys.eq2;
+      const det = a1 * b2 - a2 * b1;
+      if (Math.abs(det) > 1e-10) {
+        const xi = (c1 * b2 - c2 * b1) / det;
+        const zi = (a1 * c2 - a2 * c1) / det;
+        const sphereGeo = new THREE.SphereGeometry(0.12, 16, 16);
+        const sphereMat = new THREE.MeshStandardMaterial({ color: 0xff4444, emissive: 0x660000 });
+        const sphere = new THREE.Mesh(sphereGeo, sphereMat);
+        sphere.position.set(xi + ox, 0.12, zi);
+        scene.add(sphere);
+      }
+
+      // Label
+      _addLabel(scene, sys.label, new THREE.Vector3(ox, 1.5, 0), colors[idx]);
+
+      // Local axes
+      const axGeo = new THREE.BufferGeometry().setFromPoints([
+        new THREE.Vector3(ox - 3, 0, 0), new THREE.Vector3(ox + 3, 0, 0)
+      ]);
+      scene.add(new THREE.Line(axGeo, new THREE.LineBasicMaterial({ color: 0x404060, transparent: true, opacity: 0.3 })));
+      const azGeo = new THREE.BufferGeometry().setFromPoints([
+        new THREE.Vector3(ox, 0, -3), new THREE.Vector3(ox, 0, 3)
+      ]);
+      scene.add(new THREE.Line(azGeo, new THREE.LineBasicMaterial({ color: 0x404060, transparent: true, opacity: 0.3 })));
+    });
   }
 
   // ==================== LABEL HELPER ====================

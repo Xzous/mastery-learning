@@ -3,9 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Mastery — Learn Linear Algebra</title>
+<title>Mastery — Systems of Linear Equations</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
 <style>
 /* ==================== RESET ==================== */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -708,6 +711,39 @@ textarea.answer-input {
   border-radius: 0 0 var(--radius-lg) var(--radius-lg);
 }
 
+/* ==================== TEACH VISUALIZATION (inline in explain-card) ==================== */
+.explain-card.visual {
+  border-left-color: #7c4dff;
+}
+.explain-card.visual .explain-label {
+  color: #7c4dff;
+}
+.teach-viz-container {
+  position: relative;
+  width: 100%;
+  height: 300px;
+  background: #0a0e14;
+  border-radius: var(--radius);
+  overflow: hidden;
+  margin-top: 16px;
+  border: 1px solid #2a2a40;
+}
+.teach-viz-container canvas {
+  width: 100% !important;
+  height: 100% !important;
+  display: block;
+}
+.teach-viz-hint {
+  text-align: center;
+  font-size: 12px;
+  color: var(--text-light);
+  margin-top: 8px;
+  font-weight: 600;
+}
+@media (max-width: 600px) {
+  .teach-viz-container { height: 240px; }
+}
+
 /* ==================== PROOF STEPS ==================== */
 .proof-step {
   background: var(--white);
@@ -799,6 +835,192 @@ textarea.answer-input {
 .heatmap-3 { background: #ffe0cc; color: #cc5500; }
 .heatmap-4 { background: var(--red-light); color: var(--red-dark); }
 
+/* ==================== EXPLANATION CARDS (Brilliant-style) ==================== */
+.explain-card {
+  background: var(--white);
+  border: 2px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 28px;
+  border-left: 5px solid var(--blue);
+  margin-bottom: 20px;
+  box-shadow: var(--shadow);
+  text-align: left;
+}
+.explain-card.intro {
+  border-left-color: var(--green);
+  background: linear-gradient(135deg, #f6fff0 0%, var(--white) 100%);
+}
+.explain-card.axiom {
+  border-left-color: var(--purple);
+}
+.explain-card .explain-label {
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--blue);
+  margin-bottom: 8px;
+}
+.explain-card.intro .explain-label { color: var(--green-dark); }
+.explain-card.axiom .explain-label { color: var(--purple); }
+.explain-card .explain-title {
+  font-size: 20px;
+  font-weight: 800;
+  margin-bottom: 12px;
+  color: var(--text);
+  line-height: 1.3;
+}
+.explain-card .explain-body {
+  font-size: 16px;
+  line-height: 1.7;
+  color: var(--text);
+}
+.explain-card .explain-example {
+  background: #f0f7ff;
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  margin-top: 14px;
+  font-size: 14px;
+  color: #1a5276;
+  line-height: 1.6;
+  border: 1px solid #d4e6f7;
+}
+.explain-card.axiom .explain-example {
+  background: #f8f0ff;
+  border-color: #e4d0f7;
+  color: #4a1a7a;
+}
+.explain-card .explain-formula {
+  background: var(--bg);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  margin-top: 12px;
+  font-size: 16px;
+  text-align: center;
+  color: var(--text);
+  border: 1px solid var(--border);
+  overflow-x: auto;
+}
+.katex { font-size: 1.1em; }
+.explain-formula .katex { font-size: 1.25em; }
+.explain-example .katex { font-size: 1.05em; }
+.mc-text .katex { font-size: 1em; }
+.lesson-prompt .katex { font-size: 1.1em; }
+.explain-card .explain-key {
+  background: var(--blue-light);
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-weight: 700;
+  color: var(--blue-dark);
+}
+
+/* ==================== MULTIPLE CHOICE TILES ==================== */
+.mc-choices {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 20px;
+  text-align: left;
+}
+.mc-tile {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  padding: 14px 18px;
+  border: 2px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--white);
+  font-family: var(--font);
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text);
+  cursor: pointer;
+  transition: all 0.15s;
+  text-align: left;
+}
+.mc-tile:hover:not(.locked) {
+  border-color: var(--blue);
+  background: var(--blue-light);
+}
+.mc-tile.selected {
+  border-color: var(--blue);
+  background: var(--blue-light);
+  box-shadow: 0 0 0 2px rgba(28,176,246,0.2);
+}
+.mc-tile.locked { cursor: default; opacity: 0.85; }
+.mc-tile.correct {
+  border-color: var(--green);
+  background: var(--green-bg);
+  opacity: 1;
+}
+.mc-tile.incorrect {
+  border-color: var(--red);
+  background: var(--red-light);
+  opacity: 1;
+}
+.mc-letter {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 800;
+  background: var(--bg);
+  color: var(--text-secondary);
+  border: 2px solid var(--border);
+  flex-shrink: 0;
+  transition: all 0.15s;
+}
+.mc-tile.selected .mc-letter {
+  background: var(--blue);
+  color: #fff;
+  border-color: var(--blue-dark);
+}
+.mc-tile.correct .mc-letter {
+  background: var(--green);
+  color: #fff;
+  border-color: var(--green-dark);
+}
+.mc-tile.incorrect .mc-letter {
+  background: var(--red);
+  color: #fff;
+  border-color: var(--red-dark);
+}
+.mc-text { flex: 1; line-height: 1.4; }
+
+/* ==================== HINT BUTTON ==================== */
+.hint-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: none;
+  border: 2px solid var(--purple);
+  border-radius: var(--radius);
+  padding: 6px 14px;
+  font-family: var(--font);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--purple);
+  cursor: pointer;
+  margin-top: 14px;
+  transition: all 0.15s;
+}
+.hint-toggle:hover {
+  background: var(--purple-light);
+}
+
+/* ==================== SLIDE COUNTER ==================== */
+.slide-counter {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-light);
+  text-align: center;
+  margin-bottom: 8px;
+}
+
 /* ==================== ANIMATIONS ==================== */
 @keyframes slideUp {
   from { opacity: 0; transform: translateY(20px); }
@@ -884,6 +1106,7 @@ window.ContentRegistry = {
 <script src="js/definition-engine.js"></script>
 <script src="js/proof-engine.js"></script>
 <script src="js/visualization.js"></script>
+<script src="js/teach-viz.js"></script>
 <script src="js/dashboard.js"></script>
 <script src="js/app.js"></script>
 

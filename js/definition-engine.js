@@ -1,258 +1,259 @@
 // ============================================================
-// definition-engine.js — Duolingo-style lesson flow for definitions
+// definition-engine.js — Duolingo-style TEACH → TEST lesson flow
 // ============================================================
 window.DefinitionEngine = (() => {
 
   /**
-   * Generate a lesson (sequence of micro-questions) from a definition.
+   * Build a lesson as an ordered array of steps.
+   * Phase 1 (teach): explanation slides shown before any questions.
+   * Phase 2 (test): multiple-choice questions.
    */
   function _generateLesson(definition) {
-    const questions = [];
+    const steps = [];
 
-    // 1. Recall the full definition
-    questions.push({
-      type: 'recall',
-      prompt: `What is the definition of "${definition.name}"?`,
-      subprompt: 'Write it in your own words — include all key parts.',
-      validate: (input) => {
-        const result = Utils.scoreDefinitionResponse(input, definition.atomicParts);
-        const fb = Utils.feedbackFromScore(result);
-        return {
-          score: result.overallScore,
-          correct: result.overallScore >= 0.7,
-          feedback: fb.message,
-          detail: result.overallScore < 0.85
-            ? result.parts.filter(p => p.score < 0.5).map(p => p.part.text).join('; ')
-            : null,
-          mistakeType: Utils.classifyMistake(result)
-        };
-      }
-    });
-
-    // 2. One question per atomic part (fill in the blank style)
-    for (const part of (definition.atomicParts || [])) {
-      questions.push({
-        type: 'fill-part',
-        prompt: `Complete this part of the definition of ${definition.name}:`,
-        subprompt: _makeBlankPrompt(part.text, part.keywords),
-        reference: part.text,
-        validate: (input) => {
-          const kwResult = Utils.keywordMatch(input, part.keywords);
-          const sim = Utils.slidingWindowSimilarity(input, part.text);
-          const score = kwResult.score * 0.6 + sim * 0.4;
-          return {
-            score,
-            correct: score >= 0.6,
-            feedback: score >= 0.6 ? 'Correct!' : `The answer is: ${part.text}`,
-            mistakeType: score < 0.4 ? 'omission' : 'partial'
-          };
-        }
+    // PHASE 1: TEACH — one step per explanation slide
+    for (const slide of (definition.explanations || [])) {
+      steps.push({
+        phase: 'teach',
+        type: slide.type || 'concept',
+        title: slide.title,
+        body: slide.body,
+        example: slide.example || null,
+        formula: slide.formula || null,
+        keyTerms: slide.keyTerms || [],
+        vizScene: slide.vizScene || null,
+        vizConfig: slide.vizConfig || null
       });
     }
 
-    // 3. Add exercise-specific questions
-    for (const ex of (definition.exercises || [])) {
-      if (ex.type === 'axiom-id') {
-        questions.push({
-          type: 'axiom-id',
-          prompt: ex.prompt,
-          subprompt: 'Which axiom or property fails here?',
-          validate: (input) => {
-            const targetAxiom = (definition.axioms || []).find(a => a.id === ex.failingAxiom);
-            if (!targetAxiom) return { score: 0, correct: false, feedback: 'Error in question data.' };
-            const match = Utils.fuzzyMatch(input, targetAxiom.label);
-            return {
-              score: match.confidence,
-              correct: match.match,
-              feedback: match.match
-                ? `Yes! It's "${targetAxiom.label}". ${ex.explanation || ''}`
-                : `Not quite. The answer is: "${targetAxiom.label}". ${ex.explanation || ''}`,
-              mistakeType: match.match ? null : 'logical-leap'
-            };
-          }
-        });
-      } else if (ex.type === 'counterexample') {
-        questions.push({
-          type: 'counterexample',
-          prompt: ex.prompt,
-          subprompt: 'Give specific numbers to show the property fails.',
-          validate: (input) => {
-            const propMatch = Utils.fuzzyMatch(input, ex.failingProperty);
-            const kwResult = Utils.keywordMatch(input, ex.expectedKeywords || []);
-            const hasNumbers = /\d/.test(input);
-            const score = (propMatch.match ? 0.3 : 0) + kwResult.score * 0.4 + (hasNumbers ? 0.3 : 0);
-            return {
-              score,
-              correct: score >= 0.6,
-              feedback: score >= 0.6
-                ? 'Nice counterexample!'
-                : `Here's an example: ${ex.exampleAnswer || ex.failingProperty}`,
-              mistakeType: score < 0.4 ? 'omission' : 'partial'
-            };
-          }
-        });
-      } else if (ex.type === 'equivalence') {
-        questions.push({
-          type: 'equivalence',
-          prompt: ex.prompt,
-          subprompt: 'Explain both directions of the equivalence.',
-          context: `Formulation 1: ${ex.formulation1}\nFormulation 2: ${ex.formulation2}`,
-          validate: (input) => {
-            const kwResult = Utils.keywordMatch(input, ex.keywords || []);
-            const hasBoth = input.length > 100 ||
-              (/implies|shows|gives|⇒/.test(input.toLowerCase()) &&
-               /converse|other direction|conversely|both/.test(input.toLowerCase()));
-            const score = kwResult.score * 0.7 + (hasBoth ? 0.3 : 0.1);
-            return {
-              score,
-              correct: score >= 0.65,
-              feedback: score >= 0.65
-                ? 'Well explained!'
-                : `Key idea: ${ex.explanation || 'Show both directions of the implication.'}`,
-              mistakeType: score < 0.4 ? 'logical-leap' : 'partial'
-            };
-          }
-        });
-      }
-      // fill-in exercises are covered by the recall question above
+    // PHASE 2: TEST — one step per MC exercise (shuffled order)
+    const exercises = (definition.exercises || []).filter(ex => ex.choices && ex.choices.length > 0);
+    _shuffleArray(exercises);
+    for (const ex of exercises) {
+      steps.push({
+        phase: 'test',
+        prompt: ex.prompt,
+        choices: ex.choices,
+        correctIndex: ex.correctIndex,
+        explanation: ex.explanation || ''
+      });
     }
 
-    return questions;
+    return steps;
   }
 
-  /**
-   * Create a blank-style prompt: replace keywords with "___"
-   */
-  function _makeBlankPrompt(text, keywords) {
-    if (!keywords || keywords.length === 0) return `"___ ?"`;
-    // Just show a hint without the key terms
-    let blanked = text;
-    for (const kw of keywords) {
-      const regex = new RegExp(kw.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
-      blanked = blanked.replace(regex, '___');
-    }
-    return blanked;
-  }
+  // ==================== LESSON RENDERER ====================
 
-  /**
-   * Render a Duolingo-style definition lesson.
-   */
   function renderLesson(container, courseId, definition) {
-    const questions = _generateLesson(definition);
+    const steps = _generateLesson(definition);
     let idx = 0;
     let correctCount = 0;
-    let attempts = {};
+    let _activeTeachViz = null;
+    const totalTestQuestions = steps.filter(s => s.phase === 'test').length;
 
-    function showQuestion() {
-      if (idx >= questions.length) {
-        _showLessonComplete(container, courseId, definition, correctCount, questions.length);
+    function _disposeViz() {
+      if (_activeTeachViz) {
+        _activeTeachViz.dispose();
+        _activeTeachViz = null;
+      }
+    }
+
+    function showStep() {
+      _disposeViz();
+
+      if (idx >= steps.length) {
+        _showLessonComplete(container, courseId, definition, correctCount, totalTestQuestions);
         return;
       }
 
-      const q = questions[idx];
-      const pct = Math.round((idx / questions.length) * 100);
-      attempts[idx] = (attempts[idx] || 0);
+      const step = steps[idx];
+      const pct = Math.round((idx / steps.length) * 100);
 
-      container.innerHTML = `
-        <div class="animate-slide-up">
-          <div style="display:flex;align-items:center;gap:12px;margin-bottom:24px;">
-            <a href="#topic/${courseId}/${definition._topicId}" class="back-btn" style="text-decoration:none;">
-              <span class="arrow">&#10005;</span>
-            </a>
-            <div class="lesson-progress" style="flex:1;max-width:none;">
-              <div class="lesson-progress-fill" style="width:${pct}%"></div>
-            </div>
-            <span style="font-size:14px;font-weight:700;color:var(--text-secondary);">${idx + 1}/${questions.length}</span>
-          </div>
-        </div>
-        <div class="lesson-card animate-slide-up" style="animation-delay:0.05s;">
-          <div class="lesson-prompt">${_esc(q.prompt)}</div>
-          ${q.subprompt ? '<div class="lesson-subprompt">' + _esc(q.subprompt) + '</div>' : ''}
-          ${q.context ? '<div class="lesson-context">' + _esc(q.context) + '</div>' : ''}
-          ${q.type === 'recall' || q.type === 'equivalence' || q.type === 'counterexample'
-            ? `<textarea class="answer-input" id="lesson-input" rows="4" placeholder="Type your answer..."></textarea>`
-            : `<input type="text" class="answer-input" id="lesson-input" placeholder="Type your answer...">`
-          }
-          <div id="lesson-hints"></div>
-        </div>
-        <div id="lesson-feedback"></div>
-      `;
-
-      Dashboard._setActionBar(`
-        <button class="btn btn-check" id="lesson-check">Check</button>
-      `);
-
-      const input = container.querySelector('#lesson-input');
-      input.focus();
-
-      // Enter key submits
-      input.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter' && !e.shiftKey && input.tagName === 'INPUT') {
-          e.preventDefault();
-          document.getElementById('lesson-check').click();
-        }
-      });
-
-      document.getElementById('lesson-check').addEventListener('click', () => {
-        const value = input.value.trim();
-        if (!value) return;
-
-        attempts[idx]++;
-        const result = q.validate(value);
-
-        // Update mastery & spaced rep
-        Persistence.updateDefinitionMastery(courseId, definition.id, result.score);
-        if (result.mistakeType && !result.correct) {
-          Persistence.recordError(courseId, definition._topicId, result.mistakeType);
-        }
-        // Update SR cards for related atomic parts
-        _updateCards(courseId, definition, result.score, result.mistakeType);
-
-        input.classList.add(result.correct ? 'correct' : 'incorrect');
-        input.disabled = true;
-
-        const fb = container.querySelector('#lesson-feedback');
-        if (result.correct) {
-          correctCount++;
-          fb.innerHTML = `<div class="feedback-bar correct animate-slide-up">
-            <span class="feedback-icon">&#127881;</span>
-            <div>${_randomPraise()}${result.detail ? '<div class="feedback-detail">' + _esc(result.detail) + '</div>' : ''}</div>
-          </div>`;
-          Dashboard._setActionBar(`
-            <button class="btn btn-continue correct-btn" id="lesson-next">Continue</button>
-          `);
-        } else {
-          fb.innerHTML = `<div class="feedback-bar incorrect animate-slide-up">
-            <span class="feedback-icon">&#128161;</span>
-            <div>Correct answer:
-              <div class="feedback-detail">${_esc(result.feedback)}</div>
-            </div>
-          </div>`;
-          Dashboard._setActionBar(`
-            <button class="btn btn-continue incorrect-btn" id="lesson-next">Got It</button>
-          `);
-        }
-
-        // Show hints if multiple attempts
-        if (!result.correct && attempts[idx] >= 2) {
-          const hintsDiv = container.querySelector('#lesson-hints');
-          if (hintsDiv) {
-            hintsDiv.innerHTML = `<div class="hint-box">
-              <strong>Hint</strong>
-              ${q.reference ? _esc(q.reference) : 'Review the definition carefully.'}
-            </div>`;
-          }
-        }
-
-        document.getElementById('lesson-next').addEventListener('click', () => {
+      if (step.phase === 'teach') {
+        _renderTeachSlide(container, courseId, definition, step, idx, steps.length, pct, () => {
           idx++;
-          showQuestion();
+          showStep();
+        }, (vizHandle) => { _activeTeachViz = vizHandle; });
+      } else {
+        _renderTestQuestion(container, courseId, definition, step, idx, steps.length, pct, (wasCorrect) => {
+          if (wasCorrect) correctCount++;
+          idx++;
+          showStep();
         });
-      });
+      }
     }
 
-    showQuestion();
+    showStep();
+
+    // Return cleanup for router to call on navigation
+    return _disposeViz;
   }
+
+  // ==================== TEACH SLIDE ====================
+
+  function _renderTeachSlide(container, courseId, definition, step, idx, total, pct, onNext, onVizMount) {
+    const cardClass = step.type === 'intro' ? 'intro' :
+                      step.type === 'axiom' ? 'axiom' :
+                      step.vizScene ? 'visual' : '';
+    const labelText = step.type === 'intro' ? 'Introduction' :
+                      step.type === 'axiom' ? 'Key Rule' :
+                      step.type === 'example' ? 'Example' :
+                      step.vizScene ? 'Visualization' : 'Concept';
+
+    // Highlight key terms in the body
+    let bodyHtml = _esc(step.body);
+    for (const term of step.keyTerms) {
+      const escaped = term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const regex = new RegExp('(' + escaped + ')', 'gi');
+      bodyHtml = bodyHtml.replace(regex, '<span class="explain-key">$1</span>');
+    }
+
+    container.innerHTML = `
+      <div class="animate-slide-up">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:24px;">
+          <a href="#topic/${courseId}/${definition._topicId}" class="back-btn" style="text-decoration:none;">
+            <span class="arrow">&#10005;</span>
+          </a>
+          <div class="lesson-progress" style="flex:1;max-width:none;">
+            <div class="lesson-progress-fill" style="width:${pct}%"></div>
+          </div>
+          <span style="font-size:14px;font-weight:700;color:var(--text-secondary);">${idx + 1}/${total}</span>
+        </div>
+      </div>
+      <div class="slide-counter">${_esc(definition.name)}</div>
+      <div class="explain-card ${cardClass} animate-slide-up" style="animation-delay:0.05s;">
+        <div class="explain-label">${_esc(labelText)}</div>
+        <div class="explain-title">${_esc(step.title)}</div>
+        <div class="explain-body">${bodyHtml}</div>
+        ${step.formula ? '<div class="explain-formula">' + _esc(step.formula) + '</div>' : ''}
+        ${step.example ? '<div class="explain-example">' + _esc(step.example).replace(/\n/g, '<br>') + '</div>' : ''}
+        ${step.vizScene ? '<div class="teach-viz-container" id="teach-viz-mount"></div><div class="teach-viz-hint">Drag to pan &middot; Scroll to zoom</div>' : ''}
+      </div>
+    `;
+
+    _renderMath(container);
+
+    // Mount 3D scene if this slide has one
+    if (step.vizScene && typeof TeachViz !== 'undefined') {
+      setTimeout(() => {
+        const handle = TeachViz.mount('teach-viz-mount', step.vizScene, step.vizConfig);
+        if (handle && onVizMount) onVizMount(handle);
+      }, 50);
+    }
+
+    Dashboard._setActionBar(`
+      <button class="btn btn-check" id="teach-next">Continue</button>
+    `);
+
+    document.getElementById('teach-next').addEventListener('click', onNext);
+  }
+
+  // ==================== MC TEST QUESTION ====================
+
+  function _renderTestQuestion(container, courseId, definition, step, idx, total, pct, onNext) {
+    // Shuffle choices while tracking the correct answer
+    const shuffled = step.choices.map((text, origIdx) => ({ text, origIdx }));
+    _shuffleArray(shuffled);
+    const shuffledCorrectIdx = shuffled.findIndex(c => c.origIdx === step.correctIndex);
+
+    container.innerHTML = `
+      <div class="animate-slide-up">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:24px;">
+          <a href="#topic/${courseId}/${definition._topicId}" class="back-btn" style="text-decoration:none;">
+            <span class="arrow">&#10005;</span>
+          </a>
+          <div class="lesson-progress" style="flex:1;max-width:none;">
+            <div class="lesson-progress-fill" style="width:${pct}%"></div>
+          </div>
+          <span style="font-size:14px;font-weight:700;color:var(--text-secondary);">${idx + 1}/${total}</span>
+        </div>
+      </div>
+      <div class="lesson-card animate-slide-up" style="animation-delay:0.05s;">
+        <div class="lesson-prompt">${_esc(step.prompt)}</div>
+        <div class="mc-choices" id="mc-choices">
+          ${shuffled.map((c, i) => `
+            <button class="mc-tile" data-index="${i}">
+              <span class="mc-letter">${String.fromCharCode(65 + i)}</span>
+              <span class="mc-text">${_esc(c.text)}</span>
+            </button>
+          `).join('')}
+        </div>
+      </div>
+      <div id="lesson-feedback"></div>
+    `;
+
+    _renderMath(container);
+
+    let selectedIndex = null;
+
+    Dashboard._setActionBar(`
+      <button class="btn btn-check" id="mc-check" disabled>Check</button>
+    `);
+
+    // Wire tile selection
+    container.querySelectorAll('.mc-tile').forEach(tile => {
+      tile.addEventListener('click', () => {
+        if (tile.classList.contains('locked')) return;
+        container.querySelectorAll('.mc-tile').forEach(t => t.classList.remove('selected'));
+        tile.classList.add('selected');
+        selectedIndex = parseInt(tile.dataset.index);
+        document.getElementById('mc-check').disabled = false;
+      });
+    });
+
+    document.getElementById('mc-check').addEventListener('click', () => {
+      if (selectedIndex === null) return;
+
+      const isCorrect = selectedIndex === shuffledCorrectIdx;
+      const score = isCorrect ? 1.0 : 0.0;
+
+      // Lock all tiles and highlight correct/incorrect
+      container.querySelectorAll('.mc-tile').forEach(t => {
+        t.classList.add('locked');
+        if (parseInt(t.dataset.index) === shuffledCorrectIdx) {
+          t.classList.add('correct');
+        }
+        if (parseInt(t.dataset.index) === selectedIndex && !isCorrect) {
+          t.classList.add('incorrect');
+        }
+      });
+
+      // Update mastery & spaced rep
+      Persistence.updateDefinitionMastery(courseId, definition.id, score);
+      _updateCards(courseId, definition, score, isCorrect ? null : 'partial');
+      if (!isCorrect) {
+        Persistence.recordError(courseId, definition._topicId, 'partial');
+      }
+
+      // Feedback
+      const fb = container.querySelector('#lesson-feedback');
+      if (isCorrect) {
+        fb.innerHTML = `<div class="feedback-bar correct animate-slide-up">
+          <span class="feedback-icon">&#127881;</span>
+          <div>${_randomPraise()}</div>
+        </div>`;
+        Dashboard._setActionBar(`
+          <button class="btn btn-continue correct-btn" id="mc-next">Continue</button>
+        `);
+      } else {
+        fb.innerHTML = `<div class="feedback-bar incorrect animate-slide-up">
+          <span class="feedback-icon">&#128161;</span>
+          <div>
+            Correct answer: ${_esc(step.choices[step.correctIndex])}
+            ${step.explanation ? '<div class="feedback-detail">' + _esc(step.explanation) + '</div>' : ''}
+          </div>
+        </div>`;
+        Dashboard._setActionBar(`
+          <button class="btn btn-continue incorrect-btn" id="mc-next">Got It</button>
+        `);
+      }
+
+      _renderMath(fb);
+      document.getElementById('mc-next').addEventListener('click', () => onNext(isCorrect));
+    });
+  }
+
+  // ==================== LESSON COMPLETE ====================
 
   function _showLessonComplete(container, courseId, definition, correct, total) {
     Dashboard._clearActionBar();
@@ -287,9 +288,8 @@ window.DefinitionEngine = (() => {
     </div>`;
   }
 
-  /**
-   * Render the definition view for a topic page (overview card).
-   */
+  // ==================== DEFINITION VIEW (topic page card) ====================
+
   function renderDefinitionView(container, courseId, definition) {
     const mastery = Persistence.getDefinitionMastery(courseId, definition.id);
 
@@ -310,10 +310,14 @@ window.DefinitionEngine = (() => {
       </div>
     `;
 
+    _renderMath(container);
+
     container.querySelector('.btn-start-lesson').addEventListener('click', () => {
       renderLesson(container, courseId, definition);
     });
   }
+
+  // ==================== HELPERS ====================
 
   function _updateCards(courseId, definition, score, mistakeType) {
     const quality = SpacedRepetition.scoreToQuality(score);
@@ -328,7 +332,28 @@ window.DefinitionEngine = (() => {
     return phrases[Math.floor(Math.random() * phrases.length)];
   }
 
+  function _shuffleArray(arr) {
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  }
+
   function _esc(t) { const d = document.createElement('div'); d.textContent = t || ''; return d.innerHTML; }
+
+  /** Call KaTeX auto-render on a container element if available */
+  function _renderMath(el) {
+    if (typeof renderMathInElement === 'function') {
+      renderMathInElement(el, {
+        delimiters: [
+          { left: '$$', right: '$$', display: true },
+          { left: '$', right: '$', display: false }
+        ],
+        throwOnError: false
+      });
+    }
+  }
 
   return { renderLesson, renderDefinitionView };
 })();

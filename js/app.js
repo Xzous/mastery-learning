@@ -199,7 +199,7 @@ window.App = (() => {
       container.innerHTML = '<div class="empty-state"><h2>Definition not found</h2></div>';
       return;
     }
-    DefinitionEngine.renderLesson(container, courseId, def);
+    return DefinitionEngine.renderLesson(container, courseId, def);
   }
 
   // ==================== PROOF PAGE ====================

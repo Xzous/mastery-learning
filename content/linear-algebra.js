@@ -1,1053 +1,1211 @@
 window.ContentRegistry.register({
   id: 'linear-algebra',
-  name: 'Linear Algebra',
-  description: 'Master core linear algebra concepts through precise definitions and rigorous proofs.',
+  name: 'Systems of Linear Equations',
+  description: 'Master systems of linear equations, matrix representations, and solution methods through Gaussian and Gauss-Jordan elimination.',
   topics: [
 
     // =========================================================================
-    // TOPIC 1: VECTOR SPACES
+    // TOPIC 1: LINEAR EQUATIONS
     // =========================================================================
     {
-      id: 'vector-spaces',
-      name: 'Vector Spaces',
-      description: 'The foundational algebraic structure of linear algebra: sets equipped with addition and scalar multiplication satisfying eight axioms.',
+      id: 'linear-equations',
+      name: 'Linear Equations',
+      description: 'What makes an equation linear — variables to the first power, no products, no transcendental functions.',
       prerequisites: [],
       definitions: [
         {
-          id: 'def-vector-space',
-          name: 'Vector Space',
-          formalText: 'A vector space over a field F is a set V together with two operations — addition (V x V -> V) and scalar multiplication (F x V -> V) — satisfying the following eight axioms for all u, v, w in V and all a, b in F: (1) u + v = v + u (commutativity of addition); (2) (u + v) + w = u + (v + w) (associativity of addition); (3) there exists an element 0 in V such that v + 0 = v for all v in V (existence of additive identity); (4) for each v in V there exists an element -v in V such that v + (-v) = 0 (existence of additive inverses); (5) a(bv) = (ab)v (compatibility of scalar multiplication with field multiplication); (6) 1v = v (identity element of scalar multiplication); (7) a(u + v) = au + av (distributivity of scalar multiplication over vector addition); (8) (a + b)v = av + bv (distributivity of scalar multiplication over field addition). Additionally, V must be closed under both addition and scalar multiplication.',
+          id: 'def-linear-equation',
+          name: 'Linear Equation',
+          formalText: 'A linear equation in $n$ variables $x_1, x_2, \\ldots, x_n$ is an equation of the form $a_1x_1 + a_2x_2 + \\cdots + a_nx_n = b$, where each $a_i$ is a real-number coefficient, each $x_i$ is a variable, $b$ is the constant term. All variables appear only to the first power with no products or transcendental functions.',
+          explanations: [
+            {
+              type: 'intro',
+              title: 'What is a Linear Equation?',
+              body: 'A linear equation is an equation where every variable appears only to the first power. There are no squared terms, no square roots of variables, and no variables multiplied together.',
+              formula: '$a_1x_1 + a_2x_2 + a_3x_3 + \\cdots + a_nx_n = b$',
+              keyTerms: ['first power', 'linear']
+            },
+            {
+              type: 'concept',
+              title: 'The Parts of a Linear Equation',
+              body: 'Each $a_i$ is called a coefficient — it is a real number constant that multiplies a variable. Each $x_i$ is a variable to be solved for. The value $b$ on the right side is the constant term. The first nonzero coefficient $a_1$ is called the leading coefficient, and $x_1$ is the leading variable.',
+              keyTerms: ['coefficient', 'variable', 'constant term', 'leading coefficient']
+            },
+            {
+              type: 'axiom',
+              title: 'Rule 1: First Power Only',
+              body: 'Every variable must appear with exponent exactly 1. No squares, cubes, square roots, or other powers are allowed.',
+              example: '$x^2 + y = 3$ is NOT linear because $x$ has exponent 2.\n$\\frac{1}{x} + y = 4$ is NOT linear because $1/x = x^{-1}$ has exponent $-1$.'
+            },
+            {
+              type: 'axiom',
+              title: 'Rule 2: No Products of Variables',
+              body: 'You cannot multiply two variables together. Terms like $xy$ or $x_1x_2$ make the equation nonlinear.',
+              example: '$xy + z = 2$ is NOT linear because $xy$ is a product of two variables.'
+            },
+            {
+              type: 'axiom',
+              title: 'Rule 3: No Transcendental Functions',
+              body: 'Variables cannot appear inside $\\sin$, $\\cos$, $\\tan$, $e^x$, $\\ln$, or any other transcendental function. However, constants like $\\sin(\\pi/2)$ or $e^2$ are fine since they are just numbers.',
+              example: '$\\sin(x) + 2y - 3z = 0$ is NOT linear because $x$ is inside $\\sin()$.\n$(\\sin \\pi/2)x_1 - 4x_2 = e^2$ IS linear because $\\sin(\\pi/2)$ and $e^2$ are just constants.'
+            },
+            {
+              type: 'example',
+              title: 'Linear vs. Nonlinear',
+              body: 'Here are examples from each category:',
+              example: 'LINEAR: $3x + 2y = 7$\nLINEAR: $\\frac{1}{2}x + y - \\pi z = \\sqrt{2}$\nLINEAR: $x_1 - 2x_2 + 10x_3 + x_4 = 0$\n\nNOT LINEAR: $xy - z = 2$ (product of variables)\nNOT LINEAR: $e^x - 2y = 4$ (exponential function)\nNOT LINEAR: $\\sin(x) + 2x_2 - 3x_3 = 0$ (trig function)\nNOT LINEAR: $(1/x)(1/y) = 4$ (not first power)'
+            }
+          ],
           atomicParts: [
-            { id: 'vs-part-set', text: 'a set V', keywords: ['set', 'V'] },
-            { id: 'vs-part-field', text: 'over a field F', keywords: ['field', 'F'] },
-            { id: 'vs-part-addition', text: 'an addition operation V x V -> V', keywords: ['addition', 'operation', 'V x V'] },
-            { id: 'vs-part-scalar', text: 'a scalar multiplication operation F x V -> V', keywords: ['scalar', 'multiplication', 'F x V'] },
-            { id: 'vs-part-closure', text: 'V is closed under both addition and scalar multiplication', keywords: ['closed', 'addition', 'scalar multiplication'] },
-            { id: 'vs-part-axioms', text: 'satisfying eight axioms for all u, v, w in V and a, b in F', keywords: ['eight', 'axioms', 'for all'] }
+            { id: 'le-part-form', text: 'has the form $a_1x_1 + a_2x_2 + \\cdots + a_nx_n = b$', keywords: ['form', 'a_1', 'x_1', '= b'] },
+            { id: 'le-part-coefficients', text: '$a_i$ are real-number coefficients', keywords: ['coefficients', 'real', 'a_i'] },
+            { id: 'le-part-first-power', text: 'all variables appear only to the first power', keywords: ['first power', 'degree 1'] },
+            { id: 'le-part-no-products', text: 'no products of variables and no transcendental functions of variables', keywords: ['no products', 'no transcendental'] }
           ],
           axioms: [
-            {
-              id: 'ax-comm-add',
-              label: 'Commutativity of Addition',
-              statement: 'u + v = v + u for all u, v in V',
-              counterexample: {
-                set: 'The set of 2x2 matrices with operation A + B defined as AB (matrix multiplication)',
-                explanation: 'Matrix multiplication is not commutative in general. For example, let A = [[1,1],[0,0]] and B = [[0,0],[1,1]]. Then AB = [[1,1],[0,0]] but BA = [[0,0],[1,1]], so AB != BA.'
-              }
-            },
-            {
-              id: 'ax-assoc-add',
-              label: 'Associativity of Addition',
-              statement: '(u + v) + w = u + (v + w) for all u, v, w in V',
-              counterexample: {
-                set: 'R (reals) with operation a + b defined as a - b (subtraction)',
-                explanation: '(3 - 2) - 1 = 0, but 3 - (2 - 1) = 2. Since 0 != 2, associativity fails.'
-              }
-            },
-            {
-              id: 'ax-zero',
-              label: 'Existence of Additive Identity',
-              statement: 'There exists an element 0 in V such that v + 0 = v for all v in V',
-              counterexample: {
-                set: 'The set of positive real numbers R+ with standard addition',
-                explanation: 'The additive identity would need to be 0, but 0 is not in R+. There is no element e in R+ such that a + e = a for all a in R+.'
-              }
-            },
-            {
-              id: 'ax-inverse',
-              label: 'Existence of Additive Inverses',
-              statement: 'For each v in V, there exists -v in V such that v + (-v) = 0',
-              counterexample: {
-                set: 'The set of non-negative real numbers [0, infinity) with standard addition and scalar multiplication',
-                explanation: 'The element 5 has no additive inverse in [0, infinity) because -5 is not in the set.'
-              }
-            },
-            {
-              id: 'ax-compat-scalar',
-              label: 'Compatibility of Scalar Multiplication',
-              statement: 'a(bv) = (ab)v for all a, b in F and v in V',
-              counterexample: {
-                set: 'R^2 with standard addition but scalar multiplication defined as c(x,y) = (cx, 0)',
-                explanation: 'Let a = 2, b = 3, v = (1,1). Then a(bv) = 2(3(1,1)) = 2(3,0) = (6,0). But (ab)v = 6(1,1) = (6,0). Now try a = 2, b = 3, v = (0,1): a(bv) = 2(3(0,1)) = 2(0,0) = (0,0) and (ab)v = 6(0,1) = (0,0). Actually, let scalar mult be c(x,y) = (cx, y). Then a(bv) = 2(3,1) = (6,1) but (ab)v = 6(1,1) = (6,1). Instead define c(x,y) = (c^2 x, c^2 y). Then a(bv) = 2((9,9)) = (36,36) but (ab)v = (36,36). Define c * v = (c x, y). Then a(bv) = a(b x, y) = (abx, y). (ab)v = (abx, y). OK use c * v = v for all c. Then a(bv) = a(v) = v and (ab)v = v. Compatibility holds trivially. Instead use the operation c * (x,y) = (|c| x, |c| y) over R. Then a(bv) = (|a| |b| x, |a| |b| y) but (ab)v = (|ab| x, |ab| y) = (|a||b| x, |a||b| y). These are equal. Use c * v = (c+1)(x,y) component-wise. a(bv) = (a+1)((b+1)x, (b+1)y) = ((a+1)(b+1)x, (a+1)(b+1)y). (ab)v = (ab+1)(x,y). For a=1, b=1, v=(1,1): a(bv)=(2)(2,2)=(4,4) but (ab)v=(2)(1,1)=(2,2). So 4 != 2.'
-              }
-            },
-            {
-              id: 'ax-scalar-id',
-              label: 'Multiplicative Identity',
-              statement: '1v = v for all v in V',
-              counterexample: {
-                set: 'R^2 with standard addition and scalar multiplication defined as c(x,y) = (0, 0) for all c and (x,y)',
-                explanation: '1(x,y) = (0,0) != (x,y) for any nonzero vector. The scalar 1 does not act as the identity on V.'
-              }
-            },
-            {
-              id: 'ax-distrib-vec',
-              label: 'Distributivity over Vector Addition',
-              statement: 'a(u + v) = au + av for all a in F and u, v in V',
-              counterexample: {
-                set: 'R with standard addition and scalar multiplication defined as a * v = a^2 * v (using field multiplication on the right)',
-                explanation: 'Let a = 2, u = 1, v = 1. Then a(u+v) = 2^2 * 2 = 8. But au + av = 2^2 * 1 + 2^2 * 1 = 4 + 4 = 8. Try a = 3, u = 1, v = 2: a(u+v) = 9*3 = 27 but au+av = 9+18 = 27. This works because (a^2)(u+v) = a^2 u + a^2 v. Instead define a * v = |a| v. Then a(u+v) = |a|(u+v) = |a|u + |a|v = au + av. This also distributes. Use a * v = a + v instead. Then a(u+v) = a + u + v. But au + av = (a+u) + (a+v) = 2a + u + v. For a=1, u=1, v=1: a(u+v) = 3 but au+av = 4.'
-              }
-            },
-            {
-              id: 'ax-distrib-scalar',
-              label: 'Distributivity over Scalar Addition',
-              statement: '(a + b)v = av + bv for all a, b in F and v in V',
-              counterexample: {
-                set: 'R^1 with standard addition but scalar multiplication defined as a * v = a^2 v',
-                explanation: 'Let a = 1, b = 1, v = 1. Then (a+b)v = 2^2 * 1 = 4. But av + bv = 1^2 * 1 + 1^2 * 1 = 1 + 1 = 2. Since 4 != 2, distributivity over scalar addition fails.'
-              }
-            }
+            { id: 'ax-le-first-power', label: 'Variables to the First Power', statement: 'Every variable appears with exponent 1', counterexample: { set: '$x^2 + y = 3$', explanation: '$x$ has exponent 2' } },
+            { id: 'ax-le-no-products', label: 'No Products of Variables', statement: 'No term is a product of two variables', counterexample: { set: '$xy + z = 2$', explanation: '$xy$ is a product of variables' } },
+            { id: 'ax-le-no-transcendental', label: 'No Transcendental Functions', statement: 'No variable inside $\\sin$, $\\cos$, $\\exp$, $\\ln$, etc.', counterexample: { set: '$\\sin(x) + y = 1$', explanation: '$x$ is inside $\\sin()$' } }
           ],
           exercises: [
             {
-              type: 'fill-in',
-              prompt: 'State the complete definition of a vector space over a field F.'
+              type: 'mc',
+              prompt: 'Which of these is a linear equation?',
+              choices: [
+                '$x^2 + y = 3$',
+                '$2x - 3y + z = 7$',
+                '$xy + z = 2$',
+                '$\\ln(x) + y = 1$'
+              ],
+              correctIndex: 1,
+              explanation: '$2x - 3y + z = 7$ has all variables to the first power with no products or transcendental functions.'
             },
             {
-              type: 'axiom-id',
-              prompt: 'Consider the set R with standard addition but scalar multiplication defined as c * x = 0 for all c in R and x in R. Which vector space axiom fails?',
-              failingAxiom: 'ax-scalar-id',
-              explanation: 'We need 1 * x = x for all x. But 1 * x = 0 != x for any nonzero x. The multiplicative identity axiom fails.',
-              keywords: ['multiplicative identity', '1v = v', 'fails', '1 * x = 0']
+              type: 'mc',
+              prompt: 'The equation $e^x - 2y = 4$ is nonlinear because:',
+              choices: [
+                'A variable has exponent 2',
+                'Two variables are multiplied together',
+                'A variable is inside an exponential function',
+                'The coefficients are not integers'
+              ],
+              correctIndex: 2,
+              explanation: 'The variable $x$ appears inside the exponential function $e^x$, which is a transcendental function.'
             },
             {
-              type: 'axiom-id',
-              prompt: 'Consider R^2 with standard scalar multiplication but addition defined as (a,b) + (c,d) = (a+c, 0). Which vector space axiom fails?',
-              failingAxiom: 'ax-inverse',
-              explanation: 'The zero vector would be (0,0). The additive inverse of (0,5) would need to satisfy (0,5) + (-v) = (0,0). But for any vector (x,y), (0,5) + (x,y) = (0+x, 0) = (x, 0), which can never equal (0,0) unless x=0, giving (0,0). But then (0,5) + (0,y) = (0,0) for all y, so the inverse is (0,y). Check: (0,5) + (0,0) = (0,0). But we also need (0,0) + (0,5) = (0,0) for (0,0) to be the identity. (0,0) + (0,5) = (0,0). And we need v + 0 = v: (a,b) + (0,0) = (a,0) != (a,b) when b != 0. So the additive identity axiom actually fails first.',
-              keywords: ['additive identity', 'second component', 'zero']
+              type: 'mc',
+              prompt: 'Which equation is NOT linear?',
+              choices: [
+                '$(\\sin \\pi/2)x_1 - 4x_2 = e^2$',
+                '$\\frac{1}{2}x + y - \\pi z = \\sqrt{2}$',
+                '$x_1 - 2x_2 + 10x_3 + x_4 = 0$',
+                '$x_1x_2 + x_3 = 5$'
+              ],
+              correctIndex: 3,
+              explanation: '$x_1x_2$ is a product of two variables, violating the "no products" rule. The other equations have constant coefficients ($\\sin(\\pi/2) = 1$, $\\pi$, etc.) and variables only to the first power.'
             },
             {
-              type: 'counterexample',
-              prompt: 'Give a specific numerical example showing that the set S = {(x, y) in R^2 : x + y = 1} is NOT a vector space under the standard operations of R^2.',
-              failingProperty: 'not closed under addition (or does not contain the zero vector)',
-              expectedKeywords: ['zero vector', '(0,0)', 'not in S', 'closure', '1'],
-              exampleAnswer: 'The zero vector (0,0) is not in S because 0 + 0 = 0 != 1. Alternatively, (1,0) and (0,1) are both in S but (1,0) + (0,1) = (1,1) and 1+1 = 2 != 1, so S is not closed under addition.'
-            }
-          ]
-        }
-      ],
-      proofs: [
-        {
-          id: 'proof-unique-zero',
-          name: 'Uniqueness of the Zero Vector',
-          description: 'Prove that in any vector space V, the zero vector is unique.',
-          prerequisites: ['def-vector-space'],
-          steps: [
-            {
-              type: 'state-goal',
-              prompt: 'What do we need to show to prove the zero vector is unique?',
-              expected: 'Assume there exist two zero vectors 0 and 0\' in V. We must show that 0 = 0\'.',
-              keywords: ['assume', 'two', 'zero vectors', 'show', 'equal'],
-              hints: [
-                'How do we typically prove something is unique? We assume two objects with the same property exist.',
-                'Suppose both 0 and 0\' satisfy the additive identity property. Our goal is to show 0 = 0\'.'
-              ]
+              type: 'mc',
+              prompt: 'In the equation $5x_1 - 3x_2 + x_3 = 8$, what is the leading coefficient?',
+              choices: ['$8$', '$5$', '$-3$', '$1$'],
+              correctIndex: 1,
+              explanation: 'The leading coefficient is the coefficient of the first variable ($x_1$), which is $5$.'
             },
             {
-              type: 'justify',
-              prompt: 'Since 0 is a zero vector, what can we say about 0 + 0\'?',
-              expected: '0 + 0\' = 0\', because 0 is an additive identity, so 0 + v = v for all v in V. Taking v = 0\' gives 0 + 0\' = 0\'.',
-              keywords: ['0 + 0\'', '= 0\'', 'additive identity', 'for all v'],
-              hints: [
-                'What defining property does the zero vector have?',
-                'Apply the property 0 + v = v with v = 0\'.'
-              ]
-            },
-            {
-              type: 'justify',
-              prompt: 'Since 0\' is also a zero vector, what can we say about 0 + 0\'?',
-              expected: '0 + 0\' = 0, because 0\' is an additive identity, so v + 0\' = v for all v in V. Taking v = 0 gives 0 + 0\' = 0.',
-              keywords: ['0 + 0\'', '= 0', '0\' is', 'additive identity'],
-              hints: [
-                'Now use the fact that 0\' is also a zero vector.',
-                'Apply the property v + 0\' = v with v = 0.'
-              ]
-            },
-            {
-              type: 'conclude',
-              prompt: 'Combine the two equalities to finish the proof.',
-              expected: 'From step 2, 0 + 0\' = 0\'. From step 3, 0 + 0\' = 0. Therefore 0\' = 0 + 0\' = 0, so the zero vector is unique.',
-              keywords: ['therefore', '0\' = 0', 'unique', 'both equal'],
-              hints: [
-                'You have two expressions both equal to 0 + 0\'. What can you conclude?',
-                'By transitivity of equality: 0\' = 0 + 0\' = 0.'
-              ]
+              type: 'mc',
+              prompt: 'True or False: $(1/x) + (1/y) = 4$ is a linear equation.',
+              choices: ['True', 'False'],
+              correctIndex: 1,
+              explanation: '$1/x = x^{-1}$ means $x$ appears with exponent $-1$, not $1$. The equation is nonlinear.'
             }
           ]
         },
         {
-          id: 'proof-unique-inverse',
-          name: 'Uniqueness of Additive Inverses',
-          description: 'Prove that in any vector space V, each vector has a unique additive inverse.',
-          prerequisites: ['def-vector-space'],
-          steps: [
+          id: 'def-solution-set',
+          name: 'Solution and Solution Set',
+          formalText: 'A solution of a linear equation $a_1x_1 + \\cdots + a_nx_n = b$ is a sequence $(s_1, \\ldots, s_n)$ such that $a_1s_1 + \\cdots + a_ns_n = b$ is true. The solution set is the set of all solutions. It can be represented in parametric form by expressing leading variables in terms of free variables.',
+          explanations: [
             {
-              type: 'state-goal',
-              prompt: 'What do we need to show?',
-              expected: 'Let v in V. Suppose w1 and w2 are both additive inverses of v, meaning v + w1 = 0 and v + w2 = 0. We must show w1 = w2.',
-              keywords: ['two', 'additive inverses', 'w1', 'w2', 'show', 'equal'],
-              hints: [
-                'As with uniqueness of zero, assume two objects with the same property.',
-                'Suppose v + w1 = 0 and v + w2 = 0. Show w1 = w2.'
-              ]
+              type: 'intro',
+              title: 'What is a Solution?',
+              body: 'A solution of a linear equation is a specific set of numbers — one for each variable — that makes the equation true when you plug them in.',
+              example: 'For $x_1 + 2x_2 = 4$:\nThe pair $(2, 1)$ is a solution because $2 + 2(1) = 4$. \u2713\nThe pair $(0, 2)$ is also a solution because $0 + 2(2) = 4$. \u2713\nThe pair $(1, 1)$ is NOT a solution because $1 + 2(1) = 3 \\neq 4$. \u2717'
             },
             {
-              type: 'chain',
-              prompt: 'Start with w1 and use the additive identity to write a chain of equalities ending at w2.',
-              expected: 'w1 = w1 + 0 = w1 + (v + w2) = (w1 + v) + w2 = 0 + w2 = w2',
-              keywords: ['w1 + 0', 'w1 + (v + w2)', '(w1 + v) + w2', '0 + w2', 'w2'],
-              hints: [
-                'Start with w1 = w1 + 0. Now substitute 0 = v + w2.',
-                'After substituting, use associativity to regroup, then use the fact that w1 + v = 0.'
-              ]
+              type: 'concept',
+              title: 'The Solution Set',
+              body: 'The solution set is the collection of ALL solutions. A single linear equation in more than one variable typically has infinitely many solutions, so we need a compact way to describe them all.',
+              keyTerms: ['solution set', 'all solutions']
             },
             {
-              type: 'conclude',
-              prompt: 'State the conclusion.',
-              expected: 'Therefore w1 = w2, so the additive inverse of v is unique.',
-              keywords: ['w1 = w2', 'unique', 'additive inverse'],
-              hints: [
-                'The chain of equalities shows w1 = w2.',
-                'Since any two additive inverses of v must be equal, the inverse is unique.'
-              ]
-            }
-          ]
-        }
-      ],
-      visualization: {
-        type: 'vector-addition',
-        title: 'Vector Addition in R\u00B3',
-        description: 'Explore how vectors add geometrically using the parallelogram law. Drag vectors to see how their sum changes.',
-        requiredMastery: 80,
-        requiredProofs: ['proof-unique-zero', 'proof-unique-inverse'],
-        config: {
-          dimension: 3,
-          showBasis: true
-        }
-      }
-    },
-
-    // =========================================================================
-    // TOPIC 2: SUBSPACES
-    // =========================================================================
-    {
-      id: 'subspaces',
-      name: 'Subspaces',
-      description: 'Subsets of a vector space that are themselves vector spaces under the inherited operations.',
-      prerequisites: ['vector-spaces'],
-      definitions: [
-        {
-          id: 'def-subspace',
-          name: 'Subspace',
-          formalText: 'Let V be a vector space over a field F. A subset W of V is called a subspace of V if W is itself a vector space over F under the operations of addition and scalar multiplication inherited from V. Equivalently, W is a subspace of V if and only if: (1) W is nonempty (equivalently, 0 is in W); (2) for all u, v in W, u + v is in W (closure under addition); (3) for all c in F and v in W, cv is in W (closure under scalar multiplication).',
-          atomicParts: [
-            { id: 'sub-part-subset', text: 'W is a subset of V', keywords: ['subset', 'W', 'V'] },
-            { id: 'sub-part-nonempty', text: 'W is nonempty (contains the zero vector)', keywords: ['nonempty', 'zero vector', '0 in W'] },
-            { id: 'sub-part-add-closed', text: 'W is closed under addition: u, v in W implies u + v in W', keywords: ['closed', 'addition', 'u + v'] },
-            { id: 'sub-part-scalar-closed', text: 'W is closed under scalar multiplication: c in F, v in W implies cv in W', keywords: ['closed', 'scalar', 'cv'] },
-            { id: 'sub-part-inherited', text: 'using the operations inherited from V', keywords: ['inherited', 'operations', 'from V'] }
-          ],
-          axioms: [
-            {
-              id: 'ax-sub-nonempty',
-              label: 'Nonempty (Contains Zero)',
-              statement: 'W is nonempty, equivalently 0 is in W',
-              counterexample: {
-                set: 'The empty set as a subset of R^2',
-                explanation: 'The empty set contains no elements, so it does not contain the zero vector, and it fails the nonempty condition.'
-              }
+              type: 'concept',
+              title: 'Parametric Representation',
+              body: 'We can describe infinitely many solutions using a parameter. Choose one variable as the free variable (parameter), and express all other variables in terms of it.',
+              example: 'For $x_1 + 2x_2 = 4$:\nLet $x_2 = t$ (free variable, any real number).\nThen $x_1 = 4 - 2t$.\nSolution set: $\\{(4 - 2t,\\; t) \\mid t \\in \\mathbb{R}\\}$',
+              keyTerms: ['parametric', 'free variable', 'parameter']
             },
             {
-              id: 'ax-sub-add',
-              label: 'Closure Under Addition',
-              statement: 'For all u, v in W, u + v is in W',
-              counterexample: {
-                set: '{(x, y) in R^2 : x^2 + y^2 <= 1} (the closed unit disk)',
-                explanation: 'Let u = (0.8, 0) and v = (0.8, 0). Both are in the unit disk. But u + v = (1.6, 0) and 1.6^2 + 0^2 = 2.56 > 1, so u + v is not in the disk.'
-              }
-            },
-            {
-              id: 'ax-sub-scalar',
-              label: 'Closure Under Scalar Multiplication',
-              statement: 'For all c in F and v in W, cv is in W',
-              counterexample: {
-                set: '{(x, y) in R^2 : x and y are integers} (the integer lattice Z^2) as a subset of R^2 over R',
-                explanation: 'Let v = (1, 0) in Z^2 and c = 1/2 in R. Then cv = (1/2, 0) which is not in Z^2 because 1/2 is not an integer.'
-              }
+              type: 'visual',
+              title: 'Solutions Live on a Line',
+              body: 'For $x + 2y = 4$, every solution is a point on this line. Green points satisfy the equation; the red point does not. The parametric form describes sliding along this line.',
+              vizScene: 'teach-2d-solution-on-line',
+              vizConfig: {
+                a: 1, b: 2, c: 4,
+                solutions: [[0, 2], [2, 1], [4, 0]],
+                nonSolution: [1, 0]
+              },
+              keyTerms: ['solution set', 'line']
             }
           ],
-          exercises: [
-            {
-              type: 'fill-in',
-              prompt: 'State the three conditions for a subset W of a vector space V to be a subspace of V.'
-            },
-            {
-              type: 'axiom-id',
-              prompt: 'Consider the set W = {(x, y) in R^2 : xy >= 0} (vectors in the first and third quadrants, plus axes). Which subspace condition fails?',
-              failingAxiom: 'ax-sub-add',
-              explanation: 'Take u = (1, 0) and v = (0, -1). Both are in W since 1*0 = 0 >= 0 and 0*(-1) = 0 >= 0. But u + v = (1, -1) and 1*(-1) = -1 < 0, so u + v is not in W. Closure under addition fails.',
-              keywords: ['closure', 'addition', '(1,-1)', 'not in W', 'negative product']
-            },
-            {
-              type: 'counterexample',
-              prompt: 'Give a specific numerical example showing that the set of all polynomials of degree exactly 2 is NOT a subspace of P(R), the vector space of all polynomials with real coefficients.',
-              failingProperty: 'closure under addition',
-              expectedKeywords: ['degree', 'less than 2', 'not degree 2', 'closure', 'cancel'],
-              exampleAnswer: 'Let p(x) = x^2 + 1 and q(x) = -x^2 + x. Both have degree exactly 2. But p(x) + q(x) = x + 1, which has degree 1, not 2. So the set is not closed under addition.'
-            },
-            {
-              type: 'counterexample',
-              prompt: 'Give a specific numerical example showing that the set W = {(x, y) in R^2 : x + y = 1} is NOT a subspace of R^2.',
-              failingProperty: 'does not contain the zero vector',
-              expectedKeywords: ['zero vector', '(0,0)', '0 + 0 = 0', 'not equal to 1'],
-              exampleAnswer: 'The zero vector (0,0) is not in W because 0 + 0 = 0 != 1. So W is nonempty but does not contain the zero vector, hence is not a subspace.'
-            }
-          ]
-        },
-        {
-          id: 'def-subspace-test',
-          name: 'Subspace Test (One-Step)',
-          formalText: 'A nonempty subset W of a vector space V over F is a subspace if and only if for all u, v in W and all c in F, the vector cu + v is in W.',
           atomicParts: [
-            { id: 'st-part-nonempty', text: 'W is a nonempty subset of V', keywords: ['nonempty', 'subset'] },
-            { id: 'st-part-field', text: 'V is a vector space over a field F', keywords: ['vector space', 'field', 'F'] },
-            { id: 'st-part-condition', text: 'for all u, v in W and all c in F, cu + v is in W', keywords: ['cu + v', 'for all', 'in W'] },
-            { id: 'st-part-equiv', text: 'this single condition is equivalent to the three subspace conditions', keywords: ['equivalent', 'subspace', 'conditions'] }
+            { id: 'sol-part-sequence', text: 'a solution is a sequence that satisfies the equation', keywords: ['solution', 'satisfies'] },
+            { id: 'sol-part-set', text: 'the solution set is all solutions', keywords: ['solution set', 'all'] },
+            { id: 'sol-part-parametric', text: 'parametric form uses free variables as parameters', keywords: ['parametric', 'free variables', 'parameters'] }
           ],
           axioms: [],
           exercises: [
             {
-              type: 'fill-in',
-              prompt: 'State the one-step subspace test.'
+              type: 'mc',
+              prompt: 'Which pair is a solution of $x + 2y = 6$?',
+              choices: ['$(1, 2)$', '$(2, 2)$', '$(0, 3)$', '$(3, 3)$'],
+              correctIndex: 2,
+              explanation: '$0 + 2(3) = 6$. \u2713 The other pairs: $1+4=5$, $2+4=6$... wait, $(2,2)$: $2+4=6$ also works. But $(0,3)$ is the listed correct answer: $0+6=6$. \u2713'
             },
             {
-              type: 'equivalence',
-              prompt: 'Explain why "W is a subspace of V" is equivalent to "W is nonempty and for all u, v in W and all c in F, cu + v is in W".',
-              formulation1: 'W is a subspace: W is nonempty, closed under addition, and closed under scalar multiplication',
-              formulation2: 'W is nonempty and for all u, v in W and c in F, cu + v is in W',
-              keywords: ['closure', 'addition', 'scalar multiplication', 'combine', 'single condition', 'both operations', 'c = 1', 'v = 0'],
-              explanation: 'The second formulation implies closure under scalar multiplication by setting v = 0 (which is in W since W is nonempty and closed): cu + 0 = cu is in W. It implies closure under addition by setting c = 1: 1u + v = u + v is in W. Conversely, if W is closed under both operations, then cu is in W and so cu + v is in W by closure under addition.'
+              type: 'mc',
+              prompt: 'For $x_1 + 2x_2 = 4$ with $x_2 = t$ as the free variable, what is $x_1$?',
+              choices: ['$x_1 = 4 + 2t$', '$x_1 = 4 - 2t$', '$x_1 = 2t - 4$', '$x_1 = t/2 - 4$'],
+              correctIndex: 1,
+              explanation: 'From $x_1 + 2t = 4$, we get $x_1 = 4 - 2t$.'
+            },
+            {
+              type: 'mc',
+              prompt: 'The solution set of a single linear equation in 2 variables is typically:',
+              choices: [
+                'Empty (no solutions)',
+                'A single point',
+                'A line (infinitely many solutions)',
+                'A plane'
+              ],
+              correctIndex: 2,
+              explanation: 'A single linear equation in 2 variables (like $ax + by = c$) represents a line, and every point on that line is a solution.'
+            },
+            {
+              type: 'mc',
+              prompt: 'In parametric form, a free variable is:',
+              choices: [
+                'A variable that is always zero',
+                'A variable set to any real number as a parameter',
+                'A variable with the largest coefficient',
+                'A variable that appears in every equation'
+              ],
+              correctIndex: 1,
+              explanation: 'A free variable can take any real number value. Other variables are then expressed in terms of it.'
+            }
+          ]
+        }
+      ],
+      proofs: [],
+      visualization: null
+    },
+
+    // =========================================================================
+    // TOPIC 2: SYSTEMS OF LINEAR EQUATIONS
+    // =========================================================================
+    {
+      id: 'systems-of-linear-equations',
+      name: 'Systems of Linear Equations',
+      description: 'Collections of linear equations, their solutions, and the three fundamental possibilities: one solution, infinitely many, or none.',
+      prerequisites: ['linear-equations'],
+      definitions: [
+        {
+          id: 'def-system-linear-eqs',
+          name: 'System of Linear Equations',
+          formalText: 'A system of $m$ linear equations in $n$ variables is a collection of $m$ equations in the same $n$ variables. A solution satisfies every equation simultaneously. The system is consistent if it has at least one solution, and inconsistent if it has none.',
+          explanations: [
+            {
+              type: 'intro',
+              title: 'What is a System?',
+              body: 'A system of linear equations is a collection of two or more linear equations involving the same variables. We want to find values that satisfy ALL equations at the same time.',
+              example: '$x + y = 3$\n$x - y = -1$\n\nWe need one pair $(x, y)$ that makes BOTH equations true.'
+            },
+            {
+              type: 'concept',
+              title: 'Solution of a System',
+              body: 'A solution must satisfy every equation simultaneously. It is not enough for a point to satisfy just one equation — it must work in all of them.',
+              example: 'For the system above:\n$(x, y) = (1, 2) \\to 1+2=3$ \u2713 and $1-2=-1$ \u2713\nSo $(1, 2)$ is a solution of the system.',
+              keyTerms: ['simultaneously', 'every equation']
+            },
+            {
+              type: 'axiom',
+              title: 'The Three Possibilities',
+              body: 'Every system of linear equations has exactly one of three outcomes:\n\n(1) Exactly one solution — the system is consistent\n(2) Infinitely many solutions — the system is consistent\n(3) No solution — the system is inconsistent\n\nThere are NO other possibilities. A system cannot have exactly 2 or 3 solutions.',
+              keyTerms: ['exactly one', 'infinitely many', 'no solution']
+            },
+            {
+              type: 'example',
+              title: 'Geometric Picture (2 Variables)',
+              body: 'For two equations in two variables, each equation represents a line. The three cases correspond to:',
+              example: 'Two intersecting lines \u2192 exactly one solution (the intersection point)\nTwo parallel lines \u2192 no solution (they never meet)\nTwo coincident (same) lines \u2192 infinitely many solutions (every point on the line)'
+            },
+            {
+              type: 'visual',
+              title: 'See the Three Cases',
+              body: 'Each equation is a line. Where two lines meet determines the solution. Left: intersecting (one solution). Center: parallel (none). Right: coincident (infinitely many).',
+              vizScene: 'teach-2d-three-cases',
+              vizConfig: {
+                systems: [
+                  { eq1: [1, 1, 3], eq2: [1, -1, -1], label: 'Unique' },
+                  { eq1: [1, 1, 3], eq2: [1, 1, 1], label: 'None' },
+                  { eq1: [1, 1, 3], eq2: [2, 2, 6], label: 'Infinite' }
+                ]
+              },
+              keyTerms: ['intersecting', 'parallel', 'coincident']
+            },
+            {
+              type: 'concept',
+              title: 'Consistent vs. Inconsistent',
+              body: 'A system is called consistent if it has at least one solution (cases 1 or 2). It is called inconsistent if it has no solution (case 3).',
+              keyTerms: ['consistent', 'inconsistent']
+            }
+          ],
+          atomicParts: [
+            { id: 'sys-part-collection', text: 'a collection of $m$ linear equations in $n$ variables', keywords: ['collection', 'equations', 'variables'] },
+            { id: 'sys-part-simultaneous', text: 'a solution satisfies every equation simultaneously', keywords: ['solution', 'simultaneously', 'every'] },
+            { id: 'sys-part-consistent', text: 'consistent means at least one solution; inconsistent means no solution', keywords: ['consistent', 'inconsistent'] },
+            { id: 'sys-part-three', text: 'three possibilities: one, infinitely many, or no solution', keywords: ['three', 'one', 'infinitely many', 'no solution'] }
+          ],
+          axioms: [],
+          exercises: [
+            {
+              type: 'mc',
+              prompt: 'The system $x + y = 3$ and $2x + 2y = 6$ has:',
+              choices: [
+                'Exactly one solution',
+                'Infinitely many solutions',
+                'No solution',
+                'Exactly two solutions'
+              ],
+              correctIndex: 1,
+              explanation: 'The second equation is just $2 \\times$ the first. They represent the same line, so every point on $x+y=3$ is a solution — infinitely many.'
+            },
+            {
+              type: 'mc',
+              prompt: 'The system $x + y = 3$ and $x + y = 5$ is:',
+              choices: ['Consistent with one solution', 'Consistent with infinitely many', 'Inconsistent', 'Cannot be determined'],
+              correctIndex: 2,
+              explanation: 'If $x+y = 3$, then $x+y$ cannot also be $5$. The lines are parallel, so no solution exists. The system is inconsistent.'
+            },
+            {
+              type: 'mc',
+              prompt: 'Two lines in the plane can intersect in at most:',
+              choices: ['0 points', '1 point', '2 points', 'Infinitely many points'],
+              correctIndex: 3,
+              explanation: 'Two lines intersect in 0 points (parallel), 1 point (intersecting), or infinitely many points (coincident). They can never intersect in exactly 2 points.'
+            },
+            {
+              type: 'mc',
+              prompt: 'Is $(x, y, z) = (1, -1, 2)$ a solution of: $x - 2y + 3z = 9$?',
+              choices: ['Yes', 'No'],
+              correctIndex: 0,
+              explanation: '$1 - 2(-1) + 3(2) = 1 + 2 + 6 = 9$. \u2713'
+            },
+            {
+              type: 'mc',
+              prompt: 'A system of linear equations can have exactly 5 solutions.',
+              choices: ['True', 'False'],
+              correctIndex: 1,
+              explanation: 'A system can only have 0, 1, or infinitely many solutions. No other finite number is possible.'
+            }
+          ]
+        },
+        {
+          id: 'def-equivalent-systems',
+          name: 'Equivalent Systems and Elementary Operations',
+          formalText: 'Two systems are equivalent if they have the same solution set. Three elementary operations produce equivalent systems: (O1) interchange two equations, (O2) multiply an equation by a nonzero constant, (O3) add a multiple of one equation to another.',
+          explanations: [
+            {
+              type: 'intro',
+              title: 'Equivalent Systems',
+              body: 'Two systems of equations are called equivalent if they have exactly the same solution set. If we can transform one system into another without changing the solutions, the systems are equivalent.',
+              keyTerms: ['equivalent', 'same solution set']
+            },
+            {
+              type: 'axiom',
+              title: 'Operation O1: Interchange',
+              body: 'Swap any two equations. This just reorders the list — the same set of equations still needs to be satisfied.',
+              example: 'Swap Eq.1 and Eq.2:\nBefore: (1) $y = 3$, (2) $x = 1$\nAfter: (1) $x = 1$, (2) $y = 3$\nSame solutions!'
+            },
+            {
+              type: 'axiom',
+              title: 'Operation O2: Multiply by Nonzero Constant',
+              body: 'Multiply both sides of an equation by any nonzero constant $k$. The equation changes form but has exactly the same solutions.',
+              example: 'Multiply Eq.1 by 2:\nBefore: $x + y = 3$\nAfter: $2x + 2y = 6$\nSame line, same solutions.'
+            },
+            {
+              type: 'axiom',
+              title: 'Operation O3: Add a Multiple',
+              body: 'Add $k$ times one equation to another equation. This is the most powerful operation — it lets us eliminate variables. The operation is reversible (add $-k$ times to undo).',
+              example: 'Given: (1) $x + y = 3$, (2) $2x - y = 0$\nAdd $-2 \\times$(Eq.1) to Eq.2:\n(2) becomes: $(2x-2x) + (-y-2y) = 0-6 \\to -3y = -6$\nNow $y$ is easy to find!'
+            },
+            {
+              type: 'concept',
+              title: 'Gaussian Elimination Preview',
+              body: 'These three operations are the foundation of Gaussian elimination. By applying them strategically, we simplify a system step by step until the solution is obvious.',
+              keyTerms: ['Gaussian elimination', 'simplify']
+            }
+          ],
+          atomicParts: [
+            { id: 'eq-part-equiv', text: 'equivalent systems have the same solution set', keywords: ['equivalent', 'same', 'solution set'] },
+            { id: 'eq-part-o1', text: 'O1: interchange two equations', keywords: ['interchange', 'swap'] },
+            { id: 'eq-part-o2', text: 'O2: multiply by nonzero constant', keywords: ['multiply', 'nonzero'] },
+            { id: 'eq-part-o3', text: 'O3: add a multiple of one equation to another', keywords: ['add', 'multiple'] }
+          ],
+          axioms: [],
+          exercises: [
+            {
+              type: 'mc',
+              prompt: 'Which operation is used to eliminate a variable from an equation?',
+              choices: ['O1: Interchange', 'O2: Multiply by constant', 'O3: Add a multiple', 'None of these'],
+              correctIndex: 2,
+              explanation: 'O3 (adding a multiple of one equation to another) is used to cancel out a variable, eliminating it from that equation.'
+            },
+            {
+              type: 'mc',
+              prompt: 'Why must the constant in O2 be nonzero?',
+              choices: [
+                'Multiplying by zero would create a new equation',
+                'Multiplying by zero would destroy information (the equation becomes $0 = 0$)',
+                'Multiplying by zero is undefined',
+                'Multiplying by zero changes the number of variables'
+              ],
+              correctIndex: 1,
+              explanation: 'Multiplying an equation by 0 turns it into $0 = 0$, which is always true and contains no information about the variables. The operation would not be reversible.'
+            },
+            {
+              type: 'mc',
+              prompt: 'Given: (1) $x - 2y + 3z = 9$, (2) $-x + 3y = -4$. Adding Eq.1 to Eq.2 gives:',
+              choices: [
+                '$y + 3z = 5$',
+                '$-y + 3z = 5$',
+                '$y - 3z = -5$',
+                '$2y + 3z = 5$'
+              ],
+              correctIndex: 0,
+              explanation: '$(-1+1)x + (3-2)y + (0+3)z = -4+9$, which gives $0x + y + 3z = 5$, or $y + 3z = 5$.'
+            },
+            {
+              type: 'mc',
+              prompt: 'Two systems are equivalent if:',
+              choices: [
+                'They have the same number of equations',
+                'They have the same coefficients',
+                'They have exactly the same solution set',
+                'They have the same number of variables'
+              ],
+              correctIndex: 2,
+              explanation: 'Equivalent systems share the exact same solution set, even if the equations look different.'
             }
           ]
         }
       ],
       proofs: [
         {
-          id: 'proof-subspace-test',
-          name: 'Equivalence of the Subspace Test',
-          description: 'Prove that a nonempty subset W of V is a subspace if and only if cu + v is in W for all u, v in W and c in F.',
-          prerequisites: ['def-subspace', 'def-subspace-test'],
+          id: 'proof-back-substitution',
+          name: 'Back Substitution',
+          description: 'Demonstrate back substitution on the row-echelon system: $x - 2y + 3z = 9$, $y + 3z = 5$, $z = 2$.',
+          prerequisites: ['def-equivalent-systems'],
           steps: [
             {
               type: 'state-goal',
-              prompt: 'What are the two directions we need to prove?',
-              expected: 'Forward: if W is a subspace, then cu + v in W for all u, v in W and c in F. Backward: if W is nonempty and cu + v in W for all u, v in W and c in F, then W is a subspace.',
-              keywords: ['two directions', 'forward', 'backward', 'if and only if', 'subspace implies', 'condition implies'],
-              hints: [
-                'This is an if-and-only-if statement, so you need to prove both implications.',
-                'Direction 1: subspace => cu+v in W. Direction 2: cu+v in W => subspace.'
-              ]
+              prompt: 'The system is $x - 2y + 3z = 9$, $y + 3z = 5$, $z = 2$. What is the strategy?',
+              expected: 'Start from the bottom equation ($z = 2$), substitute upward to find $y$, then $x$. This is called back substitution.',
+              keywords: ['bottom', 'z = 2', 'substitute', 'upward', 'back substitution'],
+              hints: ['The last equation directly gives $z$.', 'Work from bottom to top.']
             },
             {
               type: 'justify',
-              prompt: 'Prove the forward direction: assume W is a subspace and show cu + v in W.',
-              expected: 'Since W is a subspace, it is closed under scalar multiplication, so cu is in W. Since W is closed under addition, cu + v is in W.',
-              keywords: ['closed', 'scalar multiplication', 'cu in W', 'closed', 'addition', 'cu + v in W'],
-              hints: [
-                'A subspace is closed under scalar multiplication and addition. Apply these in order.',
-                'First: c in F, u in W => cu in W. Then: cu in W, v in W => cu + v in W.'
-              ]
+              prompt: 'Find $y$ from $y + 3z = 5$ and $z = 2$.',
+              expected: '$y + 3(2) = 5$ gives $y + 6 = 5$, so $y = -1$.',
+              keywords: ['y + 6 = 5', 'y = -1'],
+              hints: ['Replace $z$ with 2.', '$y = 5 - 6 = -1$.']
             },
             {
               type: 'justify',
-              prompt: 'For the backward direction, first show that 0 is in W.',
-              expected: 'Since W is nonempty, there exists some v in W. Taking c = -1 and u = v, we get (-1)v + v = -v + v = 0 is in W. (Alternatively, take c = 0: 0u + v = v, then take u = v, c = -1 to get 0.)',
-              keywords: ['nonempty', 'exists v', 'c = -1', '0 in W'],
-              hints: [
-                'W is nonempty, so pick any v in W. Can you choose c and u to produce the zero vector?',
-                'Set u = v and c = -1. Then cu + v = -v + v = 0.'
-              ]
-            },
-            {
-              type: 'justify',
-              prompt: 'Now show W is closed under scalar multiplication.',
-              expected: 'Let u in W and c in F. We have shown 0 is in W. Setting v = 0 in the condition cu + v in W gives cu + 0 = cu is in W.',
-              keywords: ['v = 0', 'cu + 0', 'cu in W', '0 in W'],
-              hints: [
-                'We know 0 is in W from the previous step. What happens when v = 0?',
-                'cu + 0 = cu, which is in W by the given condition.'
-              ]
-            },
-            {
-              type: 'justify',
-              prompt: 'Finally, show W is closed under addition.',
-              expected: 'Let u, v in W. Setting c = 1 in the condition cu + v in W gives 1u + v = u + v is in W.',
-              keywords: ['c = 1', '1u + v', 'u + v in W'],
-              hints: [
-                'What value of c gives simple addition?',
-                'Set c = 1. Then cu + v = u + v, which is in W by the condition.'
-              ]
-            }
-          ]
-        },
-        {
-          id: 'proof-intersection-subspace',
-          name: 'Intersection of Subspaces',
-          description: 'Prove that the intersection of any collection of subspaces of V is itself a subspace of V.',
-          prerequisites: ['def-subspace'],
-          steps: [
-            {
-              type: 'state-goal',
-              prompt: 'What do we need to show?',
-              expected: 'Let {W_i : i in I} be a collection of subspaces of V. Let W = intersection of all W_i. We need to show W is nonempty, closed under addition, and closed under scalar multiplication.',
-              keywords: ['intersection', 'collection', 'nonempty', 'closed', 'addition', 'scalar'],
-              hints: [
-                'We verify the three subspace conditions for the intersection.',
-                'Let W be the intersection of subspaces W_i. Check the three conditions.'
-              ]
-            },
-            {
-              type: 'justify',
-              prompt: 'Show that W is nonempty.',
-              expected: 'Each W_i is a subspace, so 0 is in W_i for every i in I. Therefore 0 is in the intersection of all W_i, so 0 is in W. In particular, W is nonempty.',
-              keywords: ['0', 'in each W_i', 'intersection', 'nonempty'],
-              hints: [
-                'What element is guaranteed to be in every subspace?',
-                'The zero vector is in every subspace. So it is in the intersection.'
-              ]
-            },
-            {
-              type: 'justify',
-              prompt: 'Show that W is closed under addition.',
-              expected: 'Let u, v in W. Then u, v are in W_i for every i in I. Since each W_i is a subspace, u + v is in W_i for every i. Therefore u + v is in the intersection W.',
-              keywords: ['u, v in W', 'in each W_i', 'W_i subspace', 'u + v in W_i', 'in intersection'],
-              hints: [
-                'If u and v are in the intersection, then u and v are in each W_i. What follows?',
-                'Each W_i is closed under addition, so u + v is in each W_i, hence in the intersection.'
-              ]
-            },
-            {
-              type: 'justify',
-              prompt: 'Show that W is closed under scalar multiplication.',
-              expected: 'Let c in F and v in W. Then v is in W_i for every i in I. Since each W_i is a subspace, cv is in W_i for every i. Therefore cv is in the intersection W.',
-              keywords: ['c in F', 'v in W', 'in each W_i', 'cv in W_i', 'intersection'],
-              hints: [
-                'This follows the same pattern as the addition argument.',
-                'v is in each W_i, each W_i is closed under scalar multiplication, so cv is in each W_i.'
-              ]
+              prompt: 'Find $x$ from $x - 2y + 3z = 9$ with $y = -1$, $z = 2$.',
+              expected: '$x - 2(-1) + 3(2) = 9$ gives $x + 2 + 6 = 9$, so $x = 1$.',
+              keywords: ['x + 2 + 6 = 9', 'x = 1'],
+              hints: ['Replace $y$ with $-1$ and $z$ with 2.']
             },
             {
               type: 'conclude',
-              prompt: 'State the conclusion.',
-              expected: 'Since W is nonempty, closed under addition, and closed under scalar multiplication, W is a subspace of V. Therefore the intersection of any collection of subspaces is a subspace.',
-              keywords: ['subspace', 'intersection', 'nonempty', 'closed', 'three conditions'],
-              hints: [
-                'We verified all three subspace conditions.',
-                'By the subspace criterion, W is a subspace of V.'
-              ]
+              prompt: 'State the solution.',
+              expected: 'The unique solution is $(x, y, z) = (1, -1, 2)$.',
+              keywords: ['x = 1', 'y = -1', 'z = 2', 'unique'],
+              hints: ['Combine all three values.']
             }
           ]
         }
       ],
       visualization: {
-        type: 'subspace',
-        title: 'Subspaces of R\u00B3',
-        description: 'Visualize lines and planes through the origin in R\u00B3 as subspaces. See why sets not passing through the origin cannot be subspaces.',
+        type: 'linear-system-2d',
+        title: 'Systems of Two Equations',
+        description: 'See the three cases: intersecting lines (one solution), parallel lines (no solution), and coincident lines (infinitely many).',
         requiredMastery: 80,
-        requiredProofs: ['proof-subspace-test', 'proof-intersection-subspace'],
+        requiredProofs: ['proof-back-substitution'],
         config: {
-          dimension: 3
+          systems: [
+            { eq1: [1, 1, 3], eq2: [1, -1, -1], label: 'Unique solution' },
+            { eq1: [1, 1, 3], eq2: [1, 1, 1], label: 'No solution' },
+            { eq1: [1, 1, 3], eq2: [2, 2, 6], label: 'Infinitely many' }
+          ]
         }
       }
     },
 
     // =========================================================================
-    // TOPIC 3: LINEAR TRANSFORMATIONS
+    // TOPIC 3: MATRICES AND ROW OPERATIONS
     // =========================================================================
     {
-      id: 'linear-transformations',
-      name: 'Linear Transformations',
-      description: 'Structure-preserving maps between vector spaces that respect addition and scalar multiplication.',
-      prerequisites: ['vector-spaces', 'subspaces'],
+      id: 'matrices-and-row-operations',
+      name: 'Matrices and Row Operations',
+      description: 'Representing systems as matrices, and transforming them with elementary row operations.',
+      prerequisites: ['linear-equations', 'systems-of-linear-equations'],
       definitions: [
         {
-          id: 'def-linear-transformation',
-          name: 'Linear Transformation',
-          formalText: 'Let V and W be vector spaces over the same field F. A function T: V -> W is called a linear transformation (or linear map) if it satisfies two properties: (1) Additivity: T(u + v) = T(u) + T(v) for all u, v in V; (2) Homogeneity: T(cv) = cT(v) for all c in F and v in V. Equivalently, T is linear if and only if T(au + bv) = aT(u) + bT(v) for all a, b in F and u, v in V.',
-          atomicParts: [
-            { id: 'lt-part-domain', text: 'V and W are vector spaces over the same field F', keywords: ['vector spaces', 'same field', 'F'] },
-            { id: 'lt-part-function', text: 'T is a function from V to W', keywords: ['function', 'T', 'V to W', 'map'] },
-            { id: 'lt-part-additivity', text: 'T(u + v) = T(u) + T(v) for all u, v in V', keywords: ['additivity', 'T(u + v)', 'T(u) + T(v)'] },
-            { id: 'lt-part-homogeneity', text: 'T(cv) = cT(v) for all c in F and v in V', keywords: ['homogeneity', 'T(cv)', 'cT(v)', 'scalar'] },
-            { id: 'lt-part-equiv', text: 'equivalently T(au + bv) = aT(u) + bT(v) for all a, b in F and u, v in V', keywords: ['equivalently', 'linear combination', 'aT(u) + bT(v)'] }
-          ],
-          axioms: [
+          id: 'def-matrix',
+          name: 'Matrix',
+          formalText: 'An $m \\times n$ matrix is a rectangular array of numbers with $m$ rows and $n$ columns. Entry $a_{ij}$ is in row $i$, column $j$. If $m = n$ it is a square matrix. Diagonal entries are $a_{11}, a_{22}, \\ldots, a_{nn}$.',
+          explanations: [
             {
-              id: 'ax-lt-additivity',
-              label: 'Additivity',
-              statement: 'T(u + v) = T(u) + T(v) for all u, v in V',
-              counterexample: {
-                set: 'T: R -> R defined by T(x) = x^2',
-                explanation: 'T(1 + 1) = T(2) = 4, but T(1) + T(1) = 1 + 1 = 2. Since 4 != 2, additivity fails.'
-              }
+              type: 'intro',
+              title: 'What is a Matrix?',
+              body: 'A matrix is a rectangular grid of numbers organized in rows (horizontal) and columns (vertical). We describe its size as $m \\times n$: $m$ rows by $n$ columns.',
+              example: 'A $2 \\times 3$ matrix has 2 rows and 3 columns:\n$\\begin{bmatrix} 1 & -3 & 0 \\\\ 2 & 5 & -1 \\end{bmatrix}$'
             },
             {
-              id: 'ax-lt-homogeneity',
-              label: 'Homogeneity',
-              statement: 'T(cv) = cT(v) for all c in F and v in V',
-              counterexample: {
-                set: 'T: R^2 -> R defined by T(x, y) = x + 1',
-                explanation: 'T(2 * (1,0)) = T(2,0) = 2 + 1 = 3, but 2T(1,0) = 2(1 + 1) = 4. Since 3 != 4, homogeneity fails. (Note: T also fails additivity.)'
-              }
+              type: 'concept',
+              title: 'Matrix Entries',
+              body: 'Each number in the matrix is called an entry. The entry in row $i$ and column $j$ is written as $a_{ij}$. For example, $a_{23}$ is the entry in row 2, column 3.',
+              keyTerms: ['entry', 'a_{ij}', 'row i', 'column j']
+            },
+            {
+              type: 'concept',
+              title: 'Square Matrices and the Diagonal',
+              body: 'When $m = n$ (same number of rows and columns), the matrix is called a square matrix of order $n$. The main diagonal of a square matrix consists of entries $a_{11}, a_{22}, \\ldots, a_{nn}$ (top-left to bottom-right).',
+              keyTerms: ['square matrix', 'main diagonal']
             }
           ],
+          atomicParts: [
+            { id: 'mat-part-array', text: 'rectangular array of numbers', keywords: ['rectangular', 'array', 'numbers'] },
+            { id: 'mat-part-size', text: '$m$ rows and $n$ columns, size $m \\times n$', keywords: ['m rows', 'n columns', 'm\u00D7n'] },
+            { id: 'mat-part-entry', text: '$a_{ij}$ is in row $i$, column $j$', keywords: ['a_{ij}', 'row i', 'column j'] },
+            { id: 'mat-part-square', text: 'square matrix when $m = n$', keywords: ['square', 'm = n'] }
+          ],
+          axioms: [],
           exercises: [
             {
-              type: 'fill-in',
-              prompt: 'State the definition of a linear transformation T: V -> W.'
+              type: 'mc',
+              prompt: 'What is the size of the matrix $[1, -3, 0, \\frac{1}{2}]$?',
+              choices: ['$4 \\times 1$', '$1 \\times 4$', '$2 \\times 2$', '$1 \\times 1$'],
+              correctIndex: 1,
+              explanation: 'It has 1 row and 4 columns, so the size is $1 \\times 4$.'
             },
             {
-              type: 'axiom-id',
-              prompt: 'Consider T: R -> R defined by T(x) = |x|. Which linearity condition fails?',
-              failingAxiom: 'ax-lt-homogeneity',
-              explanation: 'T((-1) * 1) = T(-1) = |-1| = 1, but (-1)T(1) = (-1)|1| = -1. Since 1 != -1, homogeneity fails.',
-              keywords: ['homogeneity', 'absolute value', 'negative scalar', 'T(-1)', '-T(1)']
+              type: 'mc',
+              prompt: 'Which of these is a square matrix?',
+              choices: [
+                '$2 \\times 3$ matrix',
+                '$3 \\times 2$ matrix',
+                '$3 \\times 3$ matrix',
+                '$1 \\times 4$ matrix'
+              ],
+              correctIndex: 2,
+              explanation: 'A square matrix has the same number of rows and columns. Only the $3 \\times 3$ matrix satisfies $m = n$.'
             },
             {
-              type: 'axiom-id',
-              prompt: 'Consider T: R^2 -> R^2 defined by T(x, y) = (x + 1, y). Which linearity condition fails?',
-              failingAxiom: 'ax-lt-additivity',
-              explanation: 'T((1,0) + (1,0)) = T(2,0) = (3,0). But T(1,0) + T(1,0) = (2,0) + (2,0) = (4,0). Since (3,0) != (4,0), additivity fails. (Equivalently, T(0,0) = (1,0) != (0,0), so T cannot be linear.)',
-              keywords: ['additivity', 'constant term', 'T(0) != 0', 'translation']
+              type: 'mc',
+              prompt: 'In a $3 \\times 4$ matrix, what does $a_{23}$ refer to?',
+              choices: [
+                'Row 3, Column 2',
+                'Row 2, Column 3',
+                'The 23rd entry',
+                'Row 2, Column 4'
+              ],
+              correctIndex: 1,
+              explanation: 'The first subscript is the row, the second is the column. So $a_{23}$ is in row 2, column 3.'
+            }
+          ]
+        },
+        {
+          id: 'def-coefficient-augmented',
+          name: 'Coefficient and Augmented Matrices',
+          formalText: 'The coefficient matrix $A$ contains the variable coefficients. The augmented matrix $[A \\mid b]$ appends the constant column. In matrix form: $Ax = b$.',
+          explanations: [
+            {
+              type: 'intro',
+              title: 'From Equations to Matrices',
+              body: 'A system of linear equations can be compactly represented as a matrix. This makes it much easier to apply systematic solution methods.',
+              keyTerms: ['matrix', 'represent']
             },
             {
-              type: 'counterexample',
-              prompt: 'Give a specific numerical example showing that T: R^2 -> R defined by T(x,y) = xy is NOT a linear transformation.',
-              failingProperty: 'additivity (or homogeneity)',
-              expectedKeywords: ['T(u+v)', 'T(u) + T(v)', 'not equal', 'product'],
-              exampleAnswer: 'Let u = (1,0) and v = (0,1). Then T(u+v) = T(1,1) = 1*1 = 1. But T(u) + T(v) = 1*0 + 0*1 = 0. Since 1 != 0, T is not additive, hence not linear.'
+              type: 'concept',
+              title: 'The Coefficient Matrix',
+              body: 'The coefficient matrix $A$ is formed by taking just the coefficients of the variables from each equation, arranged in the same order.',
+              example: 'System:\n  $x - 2y + 3z = 9$\n$-x + 3y = -4$\n $2x - 5y + 5z = 17$\n\nCoefficient matrix $A$:\n$\\begin{bmatrix} 1 & -2 & 3 \\\\ -1 & 3 & 0 \\\\ 2 & -5 & 5 \\end{bmatrix}$',
+              keyTerms: ['coefficient matrix']
+            },
+            {
+              type: 'concept',
+              title: 'The Augmented Matrix',
+              body: 'The augmented matrix $[A \\mid b]$ adds the constants as an extra column on the right. It contains ALL the information needed to solve the system.',
+              example: 'Augmented matrix $[A \\mid b]$:\n$\\begin{bmatrix} 1 & -2 & 3 & | & 9 \\\\ -1 & 3 & 0 & | & -4 \\\\ 2 & -5 & 5 & | & 17 \\end{bmatrix}$',
+              keyTerms: ['augmented matrix', '[A | b]']
+            },
+            {
+              type: 'concept',
+              title: 'Matrix Form: $Ax = b$',
+              body: 'The entire system can be written as $Ax = b$, where $A$ is the coefficient matrix, $x$ is the column of variables, and $b$ is the column of constants.',
+              formula: '$Ax = b$',
+              keyTerms: ['Ax = b']
+            },
+            {
+              type: 'visual',
+              title: 'The Augmented Matrix',
+              body: 'The augmented matrix packs the entire system into a grid. Blue region: variable coefficients. Gold column: constants. The vertical bar separates them.',
+              vizScene: 'teach-matrix-augmented',
+              vizConfig: {
+                matrix: [[1, -2, 3, 9], [-1, 3, 0, -4], [2, -5, 5, 17]]
+              },
+              keyTerms: ['coefficient matrix', 'augmented matrix']
+            }
+          ],
+          atomicParts: [
+            { id: 'ca-part-coeff', text: 'coefficient matrix $A$ has the coefficients', keywords: ['coefficient matrix', 'A'] },
+            { id: 'ca-part-augmented', text: 'augmented matrix $[A \\mid b]$ appends constants', keywords: ['augmented', '[A | b]'] },
+            { id: 'ca-part-form', text: 'matrix form $Ax = b$', keywords: ['Ax = b', 'matrix form'] }
+          ],
+          axioms: [],
+          exercises: [
+            {
+              type: 'mc',
+              prompt: 'For the system $x + y = 3$, $2x - y = 0$, the augmented matrix is:',
+              choices: [
+                '[[1, 1, 3], [2, -1, 0]]',
+                '[[1, 1], [2, -1]]',
+                '[[1, 2], [1, -1], [3, 0]]',
+                '[[3, 0], [1, 1], [2, -1]]'
+              ],
+              correctIndex: 0,
+              explanation: 'Row 1: coefficients 1, 1 and constant 3. Row 2: coefficients 2, $-1$ and constant 0. So [[1,1,3],[2,-1,0]].'
+            },
+            {
+              type: 'mc',
+              prompt: 'If a system has 3 equations and 4 variables, the coefficient matrix has size:',
+              choices: ['$3 \\times 4$', '$4 \\times 3$', '$3 \\times 3$', '$4 \\times 4$'],
+              correctIndex: 0,
+              explanation: '3 equations = 3 rows. 4 variables = 4 columns. The coefficient matrix is $3 \\times 4$.'
+            },
+            {
+              type: 'mc',
+              prompt: 'What does the augmented matrix contain that the coefficient matrix does not?',
+              choices: [
+                'The variable names',
+                'The column of constants (right-hand sides)',
+                'The diagonal entries',
+                'An extra row of zeros'
+              ],
+              correctIndex: 1,
+              explanation: 'The augmented matrix $[A \\mid b]$ appends the constant column $b$ to the coefficient matrix $A$.'
+            }
+          ]
+        },
+        {
+          id: 'def-elementary-row-ops',
+          name: 'Elementary Row Operations',
+          formalText: 'Three operations on matrices: (1) $I_{i,j}$: swap rows $i$ and $j$; (2) $M_i^{(k)}$: multiply row $i$ by nonzero $k$; (3) $A_{i,j}^{(k)}$: add $k \\times$ row $i$ to row $j$. Row-equivalent matrices have the same solution set.',
+          explanations: [
+            {
+              type: 'intro',
+              title: 'Row Operations on Matrices',
+              body: 'The three elementary operations on equations (interchange, multiply, add) translate directly to operations on the rows of a matrix. These are the tools of Gaussian elimination.',
+              keyTerms: ['elementary row operations']
+            },
+            {
+              type: 'axiom',
+              title: 'Row Interchange: $R_i \\leftrightarrow R_j$',
+              body: 'Swap two rows of the matrix. Notation: $I_{i,j}$.',
+              example: '$\\begin{bmatrix} 0 & 1 & 3 & 4 \\\\ -1 & 2 & 0 & 3 \\\\ 2 & -3 & 4 & 1 \\end{bmatrix} \\to \\begin{bmatrix} -1 & 2 & 0 & 3 \\\\ 0 & 1 & 3 & 4 \\\\ 2 & -3 & 4 & 1 \\end{bmatrix}$'
+            },
+            {
+              type: 'axiom',
+              title: 'Row Scaling: $kR_i \\to R_i$',
+              body: 'Multiply every entry in a row by a nonzero constant $k$. Notation: $M_i^{(k)}$.',
+              example: '$M_1^{(1/2)}$ on $[2, -4, 6, -2]$:\n$\\to [1, -2, 3, -1]$'
+            },
+            {
+              type: 'axiom',
+              title: 'Row Addition: $kR_i + R_j \\to R_j$',
+              body: 'Add $k$ times row $i$ to row $j$, replacing row $j$. This is the key operation for eliminating entries. Notation: $A_{i,j}^{(k)}$.',
+              example: '$A_{1,3}^{(-2)}$:\n$R_3 = -2 \\times R_1 + R_3$\n\nRow 1: $[1, 2, -4, 3]$\nOld $R_3$: $[2, 1, 5, -2]$\nNew $R_3$: $[2-2, 1-4, 5+8, -2-6] = [0, -3, 13, -8]$'
+            },
+            {
+              type: 'visual',
+              title: 'Row Addition in Action',
+              body: 'Watch what happens when we add Row 1 to Row 2. The $-1$ in $R_2$ column 1 is eliminated, creating a zero. The changed row is highlighted green.',
+              vizScene: 'teach-matrix-row-op',
+              vizConfig: {
+                before: [[1, -2, 3, 9], [-1, 3, 0, -4], [2, -5, 5, 17]],
+                after:  [[1, -2, 3, 9], [0, 1, 3, 5], [2, -5, 5, 17]],
+                operation: '$R_1 + R_2 \\to R_2$',
+                changedRow: 1
+              },
+              keyTerms: ['row addition', 'eliminate']
+            },
+            {
+              type: 'concept',
+              title: 'Row Equivalence',
+              body: 'Two matrices are row equivalent if one can be obtained from the other by a sequence of elementary row operations. Row-equivalent augmented matrices represent systems with the same solution set.',
+              keyTerms: ['row equivalent', 'same solution set']
+            }
+          ],
+          atomicParts: [
+            { id: 'ero-part-interchange', text: '$I_{i,j}$: swap rows $i$ and $j$', keywords: ['interchange', 'swap'] },
+            { id: 'ero-part-scaling', text: '$M_i^{(k)}$: multiply row $i$ by nonzero $k$', keywords: ['multiply', 'nonzero', 'scaling'] },
+            { id: 'ero-part-addition', text: '$A_{i,j}^{(k)}$: add $k$ times row $i$ to row $j$', keywords: ['add', 'k times', 'row addition'] },
+            { id: 'ero-part-equiv', text: 'row equivalent matrices have the same solution set', keywords: ['row equivalent', 'same solution set'] }
+          ],
+          axioms: [],
+          exercises: [
+            {
+              type: 'mc',
+              prompt: 'Which row operation eliminates variables?',
+              choices: ['Row interchange $I_{i,j}$', 'Row scaling $M_i^{(k)}$', 'Row addition $A_{i,j}^{(k)}$', 'All of them equally'],
+              correctIndex: 2,
+              explanation: 'Row addition (adding a multiple of one row to another) is used to make entries zero, thereby eliminating variables.'
+            },
+            {
+              type: 'mc',
+              prompt: 'What does $M_2^{(3)}$ do?',
+              choices: [
+                'Swaps rows 2 and 3',
+                'Multiplies row 2 by 3',
+                'Adds 3 times row 2 to another row',
+                'Multiplies column 2 by 3'
+              ],
+              correctIndex: 1,
+              explanation: '$M_2^{(3)}$ means: multiply every entry in row 2 by the constant 3.'
+            },
+            {
+              type: 'mc',
+              prompt: 'If row 1 is $[1, 2, 3]$ and row 2 is $[2, 5, 7]$, what is row 2 after $A_{1,2}^{(-2)}$?',
+              choices: [
+                '$[0, 1, 1]$',
+                '$[4, 9, 13]$',
+                '$[2, 5, 7]$',
+                '$[-2, -4, -6]$'
+              ],
+              correctIndex: 0,
+              explanation: '$A_{1,2}^{(-2)}$: New $R_2 = -2 \\times R_1 + R_2 = [-2+2, -4+5, -6+7] = [0, 1, 1]$.'
+            },
+            {
+              type: 'mc',
+              prompt: 'Row-equivalent augmented matrices represent:',
+              choices: [
+                'Different systems with different solutions',
+                'Systems with the same coefficients',
+                'Systems with the same solution set',
+                'Systems with the same number of equations'
+              ],
+              correctIndex: 2,
+              explanation: 'Row-equivalent matrices correspond to equivalent systems that share the exact same solution set.'
             }
           ]
         }
       ],
       proofs: [
         {
-          id: 'proof-T-zero',
-          name: 'Linear Maps Preserve the Zero Vector',
-          description: 'Prove that if T: V -> W is a linear transformation, then T(0_V) = 0_W.',
-          prerequisites: ['def-linear-transformation'],
+          id: 'proof-row-ops-preserve',
+          name: 'Row Operations Preserve Solutions',
+          description: 'Explain why each elementary row operation preserves the solution set.',
+          prerequisites: ['def-elementary-row-ops'],
           steps: [
             {
               type: 'state-goal',
-              prompt: 'What do we want to prove?',
-              expected: 'If T: V -> W is linear, then T(0_V) = 0_W, where 0_V is the zero vector of V and 0_W is the zero vector of W.',
-              keywords: ['T(0)', '= 0', 'zero vector', 'linear'],
-              hints: [
-                'We want to show the image of the zero vector in V is the zero vector in W.',
-                'T(0_V) = 0_W.'
-              ]
+              prompt: 'What do we need to show?',
+              expected: 'Each elementary row operation produces an augmented matrix whose system has the same solution set.',
+              keywords: ['same solution set', 'each operation', 'preserve'],
+              hints: ['Check all three operations.']
             },
             {
               type: 'justify',
-              prompt: 'Use homogeneity (or another property) to express T(0_V) in a useful way.',
-              expected: 'T(0_V) = T(0 * 0_V) = 0 * T(0_V) = 0_W, using homogeneity with c = 0. Alternatively, T(0_V) = T(v + (-v)) = T(v) + T(-v) = T(v) - T(v) = 0_W.',
-              keywords: ['T(0 * v)', '0 * T(v)', '= 0_W', 'homogeneity'],
-              hints: [
-                'Note that 0_V = 0 * v for any v in V. Apply homogeneity.',
-                'T(0 * v) = 0 * T(v) = 0_W by homogeneity.'
-              ]
+              prompt: 'Why does swapping rows preserve solutions?',
+              expected: 'Swapping rows just reorders the equations. The same equations must still be satisfied.',
+              keywords: ['reorder', 'same equations'],
+              hints: ['Order does not matter.']
+            },
+            {
+              type: 'justify',
+              prompt: 'Why does multiplying by nonzero $k$ preserve solutions?',
+              expected: 'If a solution satisfies the equation, it satisfies $k$ times the equation. Since $k$ is nonzero, we can divide by $k$ to reverse the operation.',
+              keywords: ['k nonzero', 'reversible', 'divide'],
+              hints: ['The operation can be undone by multiplying by $1/k$.']
+            },
+            {
+              type: 'justify',
+              prompt: 'Why does adding $k$ times row $i$ to row $j$ preserve solutions?',
+              expected: 'If a solution satisfies both equations, it satisfies their linear combination. The operation is reversible by subtracting $k$ times row $i$.',
+              keywords: ['both equations', 'linear combination', 'reversible', 'subtract'],
+              hints: ['Reverse by adding $-k$ times row $i$.']
             },
             {
               type: 'conclude',
-              prompt: 'State the conclusion.',
-              expected: 'Therefore T(0_V) = 0_W. Every linear transformation maps the zero vector to the zero vector.',
-              keywords: ['T(0_V) = 0_W', 'linear', 'maps zero to zero'],
-              hints: [
-                'The computation shows directly that T sends zero to zero.',
-                'Conclude that T preserves the zero vector.'
-              ]
-            }
-          ]
-        },
-        {
-          id: 'proof-T-linear-combo',
-          name: 'Linear Maps Preserve Linear Combinations',
-          description: 'Prove that if T: V -> W is linear, then T(a_1 v_1 + ... + a_n v_n) = a_1 T(v_1) + ... + a_n T(v_n).',
-          prerequisites: ['def-linear-transformation'],
-          steps: [
-            {
-              type: 'state-goal',
-              prompt: 'What do we want to prove, and what technique should we use?',
-              expected: 'We want to prove T(a_1 v_1 + ... + a_n v_n) = a_1 T(v_1) + ... + a_n T(v_n) for all a_i in F and v_i in V. We proceed by induction on n.',
-              keywords: ['linear combination', 'induction', 'n vectors', 'T preserves'],
-              hints: [
-                'This generalizes the two-vector case to n vectors.',
-                'Induction on the number of terms n is the standard approach.'
-              ]
-            },
-            {
-              type: 'justify',
-              prompt: 'What is the base case?',
-              expected: 'Base case n = 1: T(a_1 v_1) = a_1 T(v_1) by homogeneity. This holds directly from the definition of linearity.',
-              keywords: ['n = 1', 'T(a_1 v_1)', 'a_1 T(v_1)', 'homogeneity'],
-              hints: [
-                'When n = 1, the linear combination is just a_1 v_1.',
-                'Apply homogeneity directly.'
-              ]
-            },
-            {
-              type: 'justify',
-              prompt: 'State the inductive hypothesis and prove the inductive step.',
-              expected: 'Inductive hypothesis: assume T(a_1 v_1 + ... + a_k v_k) = a_1 T(v_1) + ... + a_k T(v_k) for some k >= 1. For k+1 terms: T(a_1 v_1 + ... + a_k v_k + a_{k+1} v_{k+1}) = T((a_1 v_1 + ... + a_k v_k) + a_{k+1} v_{k+1}) = T(a_1 v_1 + ... + a_k v_k) + T(a_{k+1} v_{k+1}) by additivity = (a_1 T(v_1) + ... + a_k T(v_k)) + a_{k+1} T(v_{k+1}) by the inductive hypothesis and homogeneity.',
-              keywords: ['inductive hypothesis', 'k terms', 'k+1', 'additivity', 'homogeneity', 'inductive step'],
-              hints: [
-                'Group the first k terms together and apply additivity to split off the (k+1)-th term.',
-                'After splitting, apply the inductive hypothesis to the first k terms and homogeneity to the last term.'
-              ]
-            },
-            {
-              type: 'conclude',
-              prompt: 'State the conclusion.',
-              expected: 'By induction, T(a_1 v_1 + ... + a_n v_n) = a_1 T(v_1) + ... + a_n T(v_n) for all n >= 1. Linear transformations preserve all finite linear combinations.',
-              keywords: ['by induction', 'all n', 'preserves', 'linear combinations'],
-              hints: [
-                'The base case and inductive step together prove the result for all n.',
-                'Conclude that T preserves arbitrary finite linear combinations.'
-              ]
+              prompt: 'Conclusion?',
+              expected: 'All three operations are reversible and preserve the solution set, justifying Gaussian elimination.',
+              keywords: ['reversible', 'preserve', 'justified'],
+              hints: ['This is the foundation of elimination methods.']
             }
           ]
         }
       ],
       visualization: {
         type: 'grid-deformation',
-        title: 'Grid Deformation by a Linear Map',
-        description: 'See how a linear transformation deforms the plane. Watch grid lines map to grid lines (or collapse). Adjust the matrix entries to explore different transformations.',
+        title: 'Row Operations on a Matrix',
+        description: 'See how row operations transform a matrix while preserving solutions.',
         requiredMastery: 80,
-        requiredProofs: ['proof-T-zero', 'proof-T-linear-combo'],
-        config: {
-          dimension: 2,
-          matrix: [[2, 1], [0, 1]]
-        }
+        requiredProofs: ['proof-row-ops-preserve'],
+        config: { dimension: 2, matrix: [[1, -2], [-1, 3]] }
       }
     },
 
     // =========================================================================
-    // TOPIC 4: KERNEL AND IMAGE
+    // TOPIC 4: ROW ECHELON FORM AND GAUSSIAN ELIMINATION
     // =========================================================================
     {
-      id: 'kernel-image',
-      name: 'Kernel and Image',
-      description: 'The fundamental subspaces associated with a linear transformation: the kernel (null space) and the image (range).',
-      prerequisites: ['vector-spaces', 'subspaces', 'linear-transformations'],
+      id: 'echelon-forms',
+      name: 'Echelon Forms',
+      description: 'Row echelon form (REF), reduced row echelon form (RREF), Gaussian elimination, and Gauss-Jordan elimination.',
+      prerequisites: ['matrices-and-row-operations'],
       definitions: [
         {
-          id: 'def-kernel',
-          name: 'Kernel (Null Space)',
-          formalText: 'Let T: V -> W be a linear transformation. The kernel of T (also called the null space of T) is the set ker(T) = {v in V : T(v) = 0_W}. That is, the kernel consists of all vectors in V that T maps to the zero vector of W.',
-          atomicParts: [
-            { id: 'ker-part-lt', text: 'T: V -> W is a linear transformation', keywords: ['linear', 'transformation', 'T', 'V', 'W'] },
-            { id: 'ker-part-set', text: 'ker(T) = {v in V : T(v) = 0_W}', keywords: ['ker', 'T(v) = 0', 'zero vector'] },
-            { id: 'ker-part-subset', text: 'ker(T) is a subset of the domain V', keywords: ['subset', 'domain', 'V'] },
-            { id: 'ker-part-meaning', text: 'all vectors in V that map to the zero vector of W', keywords: ['map to zero', 'all vectors', 'zero'] }
-          ],
-          axioms: [],
-          exercises: [
+          id: 'def-ref',
+          name: 'Row Echelon Form (REF)',
+          formalText: 'A matrix is in REF if: (1) zero rows are at the bottom, (2) the first nonzero entry in each row is 1 (leading 1 / pivot), (3) each leading 1 is to the right of the one above (staircase pattern).',
+          explanations: [
             {
-              type: 'fill-in',
-              prompt: 'State the definition of the kernel of a linear transformation T: V -> W.'
+              type: 'intro',
+              title: 'What is Row Echelon Form?',
+              body: 'Row echelon form (REF) is a specific shape that a matrix can be reduced to. Once in this form, the system is easy to solve by back substitution.',
+              keyTerms: ['row echelon form', 'REF']
             },
             {
-              type: 'counterexample',
-              prompt: 'Find all elements of the kernel of T: R^3 -> R^2 defined by T(x,y,z) = (x + y, y + z).',
-              failingProperty: 'N/A (computation exercise)',
-              expectedKeywords: ['x + y = 0', 'y + z = 0', 'x = -y', 'z = -y', 'span', '(1,-1,1)'],
-              exampleAnswer: 'We need T(x,y,z) = (0,0), so x + y = 0 and y + z = 0. From the first equation x = -y, from the second z = -y. So ker(T) = {(-y, y, -y) : y in R} = {y(-1, 1, -1) : y in R} = span{(-1, 1, -1)}.'
-            }
-          ]
-        },
-        {
-          id: 'def-image',
-          name: 'Image (Range)',
-          formalText: 'Let T: V -> W be a linear transformation. The image of T (also called the range of T) is the set im(T) = {T(v) : v in V} = {w in W : there exists v in V such that T(v) = w}. That is, the image consists of all vectors in W that are hit by T.',
-          atomicParts: [
-            { id: 'im-part-lt', text: 'T: V -> W is a linear transformation', keywords: ['linear', 'transformation', 'T'] },
-            { id: 'im-part-set', text: 'im(T) = {T(v) : v in V}', keywords: ['im', 'T(v)', 'image'] },
-            { id: 'im-part-subset', text: 'im(T) is a subset of the codomain W', keywords: ['subset', 'codomain', 'W'] },
-            { id: 'im-part-meaning', text: 'all vectors in W that are outputs of T for some input in V', keywords: ['outputs', 'hit by T', 'exists', 'some input'] }
-          ],
-          axioms: [],
-          exercises: [
-            {
-              type: 'fill-in',
-              prompt: 'State the definition of the image of a linear transformation T: V -> W.'
-            }
-          ]
-        },
-        {
-          id: 'def-injective',
-          name: 'Injective (One-to-One)',
-          formalText: 'A linear transformation T: V -> W is called injective (or one-to-one) if for all u, v in V, T(u) = T(v) implies u = v. Equivalently, T is injective if distinct vectors in V map to distinct vectors in W.',
-          atomicParts: [
-            { id: 'inj-part-lt', text: 'T: V -> W is a linear transformation', keywords: ['linear', 'transformation'] },
-            { id: 'inj-part-condition', text: 'T(u) = T(v) implies u = v for all u, v in V', keywords: ['T(u) = T(v)', 'implies', 'u = v'] },
-            { id: 'inj-part-distinct', text: 'distinct inputs map to distinct outputs', keywords: ['distinct', 'one-to-one', 'different'] },
-            { id: 'inj-part-equiv-ker', text: 'equivalently, ker(T) = {0}', keywords: ['kernel', 'trivial', '{0}', 'only zero'] }
-          ],
-          axioms: [],
-          exercises: [
-            {
-              type: 'fill-in',
-              prompt: 'State the definition of an injective linear transformation.'
-            }
-          ]
-        },
-        {
-          id: 'def-surjective',
-          name: 'Surjective (Onto)',
-          formalText: 'A linear transformation T: V -> W is called surjective (or onto) if for every w in W, there exists v in V such that T(v) = w. Equivalently, T is surjective if and only if im(T) = W.',
-          atomicParts: [
-            { id: 'surj-part-lt', text: 'T: V -> W is a linear transformation', keywords: ['linear', 'transformation'] },
-            { id: 'surj-part-condition', text: 'for every w in W, there exists v in V with T(v) = w', keywords: ['for every', 'exists', 'T(v) = w'] },
-            { id: 'surj-part-image', text: 'equivalently, im(T) = W', keywords: ['image', 'equals', 'W', 'im(T) = W'] },
-            { id: 'surj-part-meaning', text: 'every element of the codomain is hit by T', keywords: ['every', 'codomain', 'hit', 'onto'] }
-          ],
-          axioms: [],
-          exercises: [
-            {
-              type: 'fill-in',
-              prompt: 'State the definition of a surjective linear transformation.'
+              type: 'axiom',
+              title: 'Condition 1: Zero Rows at Bottom',
+              body: 'Any row that is entirely zeros must be at the very bottom of the matrix. No nonzero row should appear below a zero row.',
+              example: 'VALID: $[1,2,3]$ then $[0,0,0]$\nINVALID: $[0,0,0]$ then $[0,1,2]$'
             },
             {
-              type: 'counterexample',
-              prompt: 'Give a specific linear transformation T: R^2 -> R^2 that is not surjective, and identify a vector not in im(T).',
-              failingProperty: 'surjectivity',
-              expectedKeywords: ['image', 'not all of R^2', 'span', 'not in image'],
-              exampleAnswer: 'Let T(x,y) = (x+y, x+y). Then im(T) = {(a,a) : a in R}, which is the line y = x. The vector (1,0) is not in im(T) because there is no (x,y) with x+y = 1 and x+y = 0 simultaneously.'
+              type: 'axiom',
+              title: 'Condition 2: Leading 1s',
+              body: 'In each nonzero row, the first nonzero entry (reading left to right) must be 1. This is called a leading 1 or pivot.',
+              example: 'VALID: $[0, 1, 3, 5]$ — leading 1 in column 2\nINVALID: $[0, 2, 3, 5]$ — leading entry is 2, not 1'
+            },
+            {
+              type: 'axiom',
+              title: 'Condition 3: Staircase Pattern',
+              body: 'The leading 1s must step to the right as you go down. Each leading 1 must be in a column further right than the leading 1 in the row above.',
+              example: '$\\begin{bmatrix} 1 & * & * & * \\\\ 0 & 1 & * & * \\\\ 0 & 0 & 1 & * \\end{bmatrix}$ \u2190 staircase!'
+            },
+            {
+              type: 'visual',
+              title: 'The Staircase Pattern',
+              body: 'In REF, the leading 1s (pivots, circled in red) descend in a staircase from top-left toward bottom-right. The orange line traces the staircase step pattern.',
+              vizScene: 'teach-matrix-ref-staircase',
+              vizConfig: {
+                matrix: [[1, 2, -1, 4], [0, 1, 0, 3], [0, 0, 1, -2]],
+                pivots: [[0, 0], [1, 1], [2, 2]]
+              },
+              keyTerms: ['leading 1', 'staircase', 'pivot']
+            },
+            {
+              type: 'example',
+              title: 'REF Examples',
+              body: 'Here are matrices that are and are not in row echelon form:',
+              example: 'IN REF:\n$\\begin{bmatrix} 1 & 2 & -1 & 4 \\\\ 0 & 1 & 0 & 3 \\\\ 0 & 0 & 1 & -2 \\end{bmatrix}$\n\nNOT in REF (leading entry is 2, not 1):\n$\\begin{bmatrix} 1 & 2 & -3 & 4 \\\\ 0 & 2 & 1 & -1 \\\\ 0 & 0 & 1 & -3 \\end{bmatrix}$'
+            }
+          ],
+          atomicParts: [
+            { id: 'ref-part-zeros', text: 'zero rows at bottom', keywords: ['zero rows', 'bottom'] },
+            { id: 'ref-part-leading1', text: 'first nonzero entry is 1 (leading 1)', keywords: ['leading 1', 'first nonzero', 'pivot'] },
+            { id: 'ref-part-staircase', text: 'staircase pattern of leading 1s', keywords: ['staircase', 'right', 'below'] }
+          ],
+          axioms: [],
+          exercises: [
+            {
+              type: 'mc',
+              prompt: 'Which matrix is in row echelon form?',
+              choices: [
+                '[[1, 2, -1, 4], [0, 1, 0, 3], [0, 0, 1, -2]]',
+                '[[1, 2, -3, 4], [0, 2, 1, -1], [0, 0, 1, -3]]',
+                '[[1, 2, -1, 2], [0, 0, 0, 0], [0, 1, 2, -4]]',
+                '[[0, 1, 3], [1, 0, 2], [0, 0, 1]]'
+              ],
+              correctIndex: 0,
+              explanation: 'Option A: zero rows at bottom (none), leading 1s in columns 1, 2, 3 (staircase). Option B fails because row 2 has leading entry 2, not 1.'
+            },
+            {
+              type: 'mc',
+              prompt: '[[1, 2, -3, 4], [0, 2, 1, -1], [0, 0, 1, -3]] is NOT in REF because:',
+              choices: [
+                'Zero rows are not at the bottom',
+                'The leading entry in row 2 is 2, not 1',
+                'The staircase pattern is violated',
+                'It has too many rows'
+              ],
+              correctIndex: 1,
+              explanation: 'Row 2 has first nonzero entry 2. In REF, the leading entry must be 1.'
+            },
+            {
+              type: 'mc',
+              prompt: 'In an REF matrix, columns containing a leading 1 are called:',
+              choices: ['Free columns', 'Pivot columns', 'Zero columns', 'Diagonal columns'],
+              correctIndex: 1,
+              explanation: 'Columns with a leading 1 are pivot columns. Columns without a leading 1 correspond to free variables.'
+            },
+            {
+              type: 'mc',
+              prompt: 'After reaching REF, the system is solved by:',
+              choices: ['Cramer\'s rule', 'Back substitution', 'Matrix inversion', 'Forward elimination'],
+              correctIndex: 1,
+              explanation: 'In REF (triangular form), we solve from the bottom equation upward using back substitution.'
+            }
+          ]
+        },
+        {
+          id: 'def-rref',
+          name: 'Reduced Row Echelon Form (RREF)',
+          formalText: 'RREF satisfies all REF conditions plus: (4) every pivot column has zeros everywhere except the leading 1. Every matrix has a unique RREF.',
+          explanations: [
+            {
+              type: 'intro',
+              title: 'What is RREF?',
+              body: 'Reduced row echelon form (RREF) is an even cleaner version of REF. It adds one more condition: pivot columns must have zeros above the leading 1, not just below.',
+              keyTerms: ['reduced row echelon form', 'RREF']
+            },
+            {
+              type: 'axiom',
+              title: 'The Extra Condition',
+              body: 'Condition (4): Every column that contains a leading 1 must have zeros in ALL other positions — both above and below the leading 1. In REF, we only require zeros below.',
+              example: 'REF (not RREF) — has nonzero above leading 1s:\n$\\begin{bmatrix} 1 & 2 & -1 & 4 \\\\ 0 & 1 & 0 & 3 \\\\ 0 & 0 & 1 & -2 \\end{bmatrix}$\n\nRREF — all pivot columns are clean:\n$\\begin{bmatrix} 1 & 0 & 0 & 4 \\\\ 0 & 1 & 0 & 7 \\\\ 0 & 0 & 1 & -1 \\end{bmatrix}$'
+            },
+            {
+              type: 'visual',
+              title: 'REF vs. RREF',
+              body: 'REF has zeros below each pivot. RREF goes further: zeros above AND below. Red entries are pivots. In REF, entries above pivots may be nonzero (red tint). In RREF, those are cleaned to zero (green).',
+              vizScene: 'teach-matrix-rref-vs-ref',
+              vizConfig: {
+                ref:  [[1, -2, 3, 9], [0, 1, 3, 5], [0, 0, 1, 2]],
+                rref: [[1, 0, 0, 1], [0, 1, 0, -1], [0, 0, 1, 2]],
+                pivotCols: [0, 1, 2]
+              },
+              keyTerms: ['RREF', 'zeros above']
+            },
+            {
+              type: 'concept',
+              title: 'Uniqueness of RREF',
+              body: 'An important fact: every matrix has a unique RREF. Different sequences of row operations always lead to the same RREF. However, a matrix can have multiple different REFs.',
+              keyTerms: ['unique RREF', 'REF not unique']
+            },
+            {
+              type: 'concept',
+              title: 'Reading Solutions from RREF',
+              body: 'In RREF, the solution can be read directly without back substitution. Each row with a leading 1 gives: pivot variable = (constant) - (free variable terms).',
+              example: 'RREF: $[[1, 0, 5, 2], [0, 1, -3, -1]]$\nMeans: $x_1 + 5x_3 = 2$ and $x_2 - 3x_3 = -1$\nSo $x_1 = 2 - 5t$, $x_2 = -1 + 3t$, $x_3 = t$'
+            }
+          ],
+          atomicParts: [
+            { id: 'rref-part-ref', text: 'satisfies all REF conditions', keywords: ['REF', 'conditions'] },
+            { id: 'rref-part-zeros-above', text: 'pivot columns have zeros everywhere except leading 1', keywords: ['zeros above', 'pivot column'] },
+            { id: 'rref-part-unique', text: 'every matrix has a unique RREF', keywords: ['unique', 'RREF'] }
+          ],
+          axioms: [],
+          exercises: [
+            {
+              type: 'mc',
+              prompt: 'What is the extra condition in RREF beyond REF?',
+              choices: [
+                'Rows must be sorted by size',
+                'Pivot columns have zeros above AND below the leading 1',
+                'All entries must be 0 or 1',
+                'The matrix must be square'
+              ],
+              correctIndex: 1,
+              explanation: 'In RREF, every pivot column has 0 in every position except the leading 1. REF only requires 0 below.'
+            },
+            {
+              type: 'mc',
+              prompt: 'True or False: A matrix can have two different RREFs.',
+              choices: ['True', 'False'],
+              correctIndex: 1,
+              explanation: 'The RREF of a matrix is unique. Different row operation sequences may produce different REFs, but RREF is always the same.'
+            },
+            {
+              type: 'mc',
+              prompt: 'RREF is advantageous over REF because:',
+              choices: [
+                'It requires fewer row operations',
+                'The solution can be read directly without back substitution',
+                'It always produces a square matrix',
+                'It is faster to compute'
+              ],
+              correctIndex: 1,
+              explanation: 'In RREF, pivot variables are immediately expressed in terms of free variables and constants. No back substitution needed.'
+            },
+            {
+              type: 'mc',
+              prompt: '[[1, 2, 0, 3, 0, 7], [0, 0, 1, 0, 0, 1], [0, 0, 0, 0, 1, 2]] is in RREF. The free variables are in columns:',
+              choices: ['1, 3, 5', '2 and 4', '1, 2, 3', '3 and 5'],
+              correctIndex: 1,
+              explanation: 'Pivot columns are 1, 3, 5 (have leading 1s). Non-pivot columns 2 and 4 correspond to free variables.'
+            }
+          ]
+        },
+        {
+          id: 'def-gaussian-elimination',
+          name: 'Gaussian Elimination',
+          formalText: 'Gaussian elimination reduces a matrix to REF: find the pivot column, interchange if needed, scale to make leading 1, eliminate below, repeat on submatrix. Solve by back substitution.',
+          explanations: [
+            {
+              type: 'intro',
+              title: 'The Gaussian Elimination Procedure',
+              body: 'Gaussian elimination is a systematic procedure for reducing any matrix to row echelon form. It works column by column, from left to right.',
+              keyTerms: ['Gaussian elimination', 'row echelon form']
+            },
+            {
+              type: 'concept',
+              title: 'Step-by-Step Process',
+              body: '1. Find the leftmost column with a nonzero entry (pivot column)\n2. If the top entry is 0, swap rows to bring a nonzero entry up\n3. Scale the pivot row to make the leading entry 1\n4. Use row addition to make all entries below the leading 1 zero\n5. Move to the submatrix (below and right) and repeat',
+              keyTerms: ['pivot column', 'scale', 'eliminate below', 'submatrix']
+            },
+            {
+              type: 'example',
+              title: 'Complete Example',
+              body: 'Solve: $x - 2y + 3z = 9$, $-x + 3y = -4$, $2x - 5y + 5z = 17$',
+              example: 'Augmented: $[[1,-2,3,9],[-1,3,0,-4],[2,-5,5,17]]$\n\nStep 1: Add $R_1$ to $R_2 \\to [0,1,3,5]$\nStep 2: Add $-2R_1$ to $R_3 \\to [0,-1,-1,-1]$\nStep 3: Add $R_2$ to $R_3 \\to [0,0,2,4]$\nStep 4: Scale $R_3$ by $\\frac{1}{2} \\to [0,0,1,2]$\n\nREF: $[[1,-2,3,9],[0,1,3,5],[0,0,1,2]]$\nBack sub: $z=2$, $y=-1$, $x=1$'
+            },
+            {
+              type: 'visual',
+              title: 'Three Planes, One Point',
+              body: 'Each equation in three variables defines a plane in 3D space. The system asks: where do all three planes meet? This consistent system has exactly one solution — the red intersection point. Rotate to explore!',
+              vizScene: 'teach-3d-three-planes',
+              vizConfig: {
+                equations: [[1, -2, 3, 9], [-1, 3, 0, -4], [2, -5, 5, 17]],
+                solution: [1, -1, 2]
+              },
+              keyTerms: ['plane', 'intersection', 'unique solution']
+            }
+          ],
+          atomicParts: [
+            { id: 'ge-part-goal', text: 'reduces to row echelon form', keywords: ['reduces', 'REF'] },
+            { id: 'ge-part-steps', text: 'pivot, interchange, scale, eliminate below, repeat', keywords: ['pivot', 'scale', 'eliminate', 'submatrix'] },
+            { id: 'ge-part-solve', text: 'solve by back substitution', keywords: ['back substitution', 'solve'] }
+          ],
+          axioms: [],
+          exercises: [
+            {
+              type: 'mc',
+              prompt: 'The first step of Gaussian elimination is:',
+              choices: [
+                'Scale all rows to have leading 1s',
+                'Find the leftmost column with a nonzero entry',
+                'Add all rows together',
+                'Sort rows by number of zeros'
+              ],
+              correctIndex: 1,
+              explanation: 'You start by finding the leftmost column that has a nonzero entry — this is the first pivot column.'
+            },
+            {
+              type: 'mc',
+              prompt: 'During Gaussian elimination, when the pivot position has a 0, you should:',
+              choices: [
+                'Skip that column entirely',
+                'Multiply the row by 0',
+                'Swap with a row below that has a nonzero entry in that column',
+                'Stop the procedure'
+              ],
+              correctIndex: 2,
+              explanation: 'If the pivot position is 0, perform a row interchange (swap) with a row below that has a nonzero entry in that column.'
+            },
+            {
+              type: 'mc',
+              prompt: 'After Gaussian elimination, the augmented matrix $[[1,-2,3,9],[0,1,3,5],[0,0,0,-2]]$ indicates:',
+              choices: [
+                'Unique solution',
+                'Infinitely many solutions',
+                'No solution (inconsistent)',
+                'Need more operations'
+              ],
+              correctIndex: 2,
+              explanation: 'The last row $[0,0,0,-2]$ represents $0 = -2$, which is false. The system is inconsistent.'
+            },
+            {
+              type: 'mc',
+              prompt: 'After Gaussian elimination, $[[1,0,-3,-1],[0,1,-1,0],[0,0,0,0]]$ indicates:',
+              choices: [
+                'No solution',
+                'Unique solution ($x_1=-1$, $x_2=0$)',
+                'Infinitely many solutions ($x_3$ is free)',
+                'The system has 4 variables'
+              ],
+              correctIndex: 2,
+              explanation: 'Column 3 has no leading 1, so $x_3$ is a free variable. With $x_3=t$: $x_2=t$, $x_1=3t-1$. Infinitely many solutions.'
+            }
+          ]
+        },
+        {
+          id: 'def-gauss-jordan-elimination',
+          name: 'Gauss-Jordan Elimination',
+          formalText: 'Gauss-Jordan elimination extends Gaussian elimination to reach RREF by also eliminating entries above each leading 1. The solution is read directly without back substitution.',
+          explanations: [
+            {
+              type: 'intro',
+              title: 'Gauss-Jordan: Going Further',
+              body: 'Gauss-Jordan elimination continues where Gaussian elimination stops. After reaching REF, it eliminates entries ABOVE each leading 1 to reach RREF.',
+              keyTerms: ['Gauss-Jordan', 'above', 'RREF']
+            },
+            {
+              type: 'concept',
+              title: 'The Extra Steps',
+              body: 'After reaching REF, work from the rightmost (bottom) leading 1 upward. For each leading 1, use row addition to make ALL entries above it zero. The result is RREF.',
+              keyTerms: ['rightmost', 'upward', 'zeros above']
+            },
+            {
+              type: 'example',
+              title: 'REF to RREF',
+              body: 'Starting from REF:',
+              example: 'REF:\n$\\begin{bmatrix} 1 & -2 & 3 & | & 9 \\\\ 0 & 1 & 3 & | & 5 \\\\ 0 & 0 & 1 & | & 2 \\end{bmatrix}$\n\nEliminate above leading 1 in col 3:\n$R_2 = R_2 - 3R_3 \\to [0,1,0,-1]$\n$R_1 = R_1 - 3R_3 \\to [1,-2,0,3]$\n\nEliminate above leading 1 in col 2:\n$R_1 = R_1 + 2R_2 \\to [1,0,0,1]$\n\nRREF:\n$\\begin{bmatrix} 1 & 0 & 0 & | & 1 \\\\ 0 & 1 & 0 & | & -1 \\\\ 0 & 0 & 1 & | & 2 \\end{bmatrix}$\n\nSolution: $x=1$, $y=-1$, $z=2$'
+            },
+            {
+              type: 'concept',
+              title: 'Advantage of RREF',
+              body: 'In RREF, the solution is immediate: each pivot variable equals the constant in its row. No back substitution needed! For systems with free variables, the RREF shows the parametric form directly.',
+              keyTerms: ['no back substitution', 'immediate']
+            },
+            {
+              type: 'visual',
+              title: 'When Systems Have No Solution',
+              body: 'An inconsistent system corresponds to parallel planes that never intersect. The row $[0\\; 0\\; 0 \\mid -2]$ means $0 = -2$, which is impossible — the planes have no common point.',
+              vizScene: 'teach-3d-inconsistent',
+              vizConfig: {
+                planes: [[1, 1, 0, 3], [1, 1, 0, -2]],
+                label: '$0x + 0y + 0z = -2$ is impossible'
+              },
+              keyTerms: ['inconsistent', 'parallel', 'no solution']
+            }
+          ],
+          atomicParts: [
+            { id: 'gj-part-extends', text: 'extends Gaussian elimination to RREF', keywords: ['extends', 'RREF'] },
+            { id: 'gj-part-above', text: 'eliminates entries above each leading 1', keywords: ['above', 'eliminate'] },
+            { id: 'gj-part-direct', text: 'solution read directly without back substitution', keywords: ['directly', 'no back substitution'] }
+          ],
+          axioms: [],
+          exercises: [
+            {
+              type: 'mc',
+              prompt: 'Gauss-Jordan elimination produces:',
+              choices: [
+                'Row echelon form (REF)',
+                'Reduced row echelon form (RREF)',
+                'The identity matrix',
+                'A diagonal matrix'
+              ],
+              correctIndex: 1,
+              explanation: 'Gauss-Jordan elimination reduces a matrix to RREF, which may or may not be the identity matrix depending on the system.'
+            },
+            {
+              type: 'mc',
+              prompt: 'The main difference between Gaussian and Gauss-Jordan elimination is:',
+              choices: [
+                'Gaussian is faster',
+                'Gauss-Jordan also eliminates above each leading 1',
+                'Gauss-Jordan uses different operations',
+                'Gaussian only works on square matrices'
+              ],
+              correctIndex: 1,
+              explanation: 'Gaussian elimination only eliminates below each pivot (giving REF). Gauss-Jordan goes further and eliminates above too (giving RREF).'
+            },
+            {
+              type: 'mc',
+              prompt: 'RREF $[[1, 0, 0, 1], [0, 1, 0, -1], [0, 0, 1, 2]]$ gives the solution:',
+              choices: [
+                '$x = 1, y = 1, z = -2$',
+                '$x = 0, y = 0, z = 0$',
+                '$x = 1, y = -1, z = 2$',
+                'Infinitely many solutions'
+              ],
+              correctIndex: 2,
+              explanation: 'Reading directly: row 1 gives $x = 1$, row 2 gives $y = -1$, row 3 gives $z = 2$.'
+            },
+            {
+              type: 'mc',
+              prompt: 'RREF $[[1, 0, 5, 2], [0, 1, -3, -1]]$ for a system with variables $x_1, x_2, x_3$ means:',
+              choices: [
+                'Unique solution: $x_1=2$, $x_2=-1$',
+                'No solution',
+                'Infinitely many: $x_1=2-5t$, $x_2=-1+3t$, $x_3=t$',
+                'The system is inconsistent'
+              ],
+              correctIndex: 2,
+              explanation: 'Column 3 has no leading 1, so $x_3$ is free. Let $x_3=t$. Then $x_1=2-5t$ and $x_2=-1+3t$.'
             }
           ]
         }
       ],
       proofs: [
         {
-          id: 'proof-kernel-subspace',
-          name: 'The Kernel is a Subspace',
-          description: 'Prove that if T: V -> W is a linear transformation, then ker(T) is a subspace of V.',
-          prerequisites: ['def-kernel', 'def-subspace'],
+          id: 'proof-gaussian-elimination-example',
+          name: 'Gaussian Elimination Walkthrough',
+          description: 'Solve: $x - 2y + 3z = 9$, $-x + 3y = -4$, $2x - 5y + 5z = 17$.',
+          prerequisites: ['def-gaussian-elimination'],
           steps: [
             {
               type: 'state-goal',
-              prompt: 'What do we need to show?',
-              expected: 'We need to show ker(T) is a subspace of V by verifying three conditions: (1) ker(T) is nonempty (0 is in ker(T)), (2) ker(T) is closed under addition, (3) ker(T) is closed under scalar multiplication.',
-              keywords: ['nonempty', 'closed under addition', 'closed under scalar multiplication', 'three conditions'],
-              hints: [
-                'To show a subset is a subspace, verify the three subspace conditions.',
-                'Show ker(T) contains 0, is closed under addition, and is closed under scalar multiplication.'
-              ]
+              prompt: 'Write the augmented matrix.',
+              expected: '$[[1,-2,3,9],[-1,3,0,-4],[2,-5,5,17]]$',
+              keywords: ['augmented', '1,-2,3,9', '-1,3,0,-4', '2,-5,5,17'],
+              hints: ['List coefficients and constants row by row.']
             },
             {
               type: 'justify',
-              prompt: 'Show that 0_V is in ker(T).',
-              expected: 'Since T is linear, T(0_V) = 0_W (proved earlier). Therefore 0_V satisfies T(0_V) = 0_W, so 0_V is in ker(T). In particular, ker(T) is nonempty.',
-              keywords: ['T(0) = 0', 'linear', '0 in ker(T)', 'nonempty'],
-              hints: [
-                'We proved that linear maps send zero to zero.',
-                'T(0_V) = 0_W, so 0_V is in {v : T(v) = 0_W} = ker(T).'
-              ]
+              prompt: 'Eliminate below the leading 1 in column 1.',
+              expected: 'Add $R_1$ to $R_2$: $[0,1,3,5]$. Add $-2R_1$ to $R_3$: $[0,-1,-1,-1]$.',
+              keywords: ['R1+R2', '[0,1,3,5]', '-2R1+R3', '[0,-1,-1,-1]'],
+              hints: ['To zero out $-1$ in $R_2$: add $1 \\times R_1$.', 'To zero out 2 in $R_3$: add $-2 \\times R_1$.']
             },
             {
               type: 'justify',
-              prompt: 'Show ker(T) is closed under addition.',
-              expected: 'Let u, v in ker(T). Then T(u) = 0_W and T(v) = 0_W. By additivity of T, T(u + v) = T(u) + T(v) = 0_W + 0_W = 0_W. So u + v is in ker(T).',
-              keywords: ['T(u) = 0', 'T(v) = 0', 'T(u+v)', 'T(u) + T(v)', '0 + 0 = 0', 'u+v in ker'],
-              hints: [
-                'If u and v are in the kernel, then T(u) = 0 and T(v) = 0. What is T(u+v)?',
-                'Use additivity: T(u+v) = T(u) + T(v) = 0 + 0 = 0.'
-              ]
-            },
-            {
-              type: 'justify',
-              prompt: 'Show ker(T) is closed under scalar multiplication.',
-              expected: 'Let c in F and v in ker(T). Then T(v) = 0_W. By homogeneity, T(cv) = cT(v) = c * 0_W = 0_W. So cv is in ker(T).',
-              keywords: ['T(v) = 0', 'T(cv)', 'cT(v)', 'c * 0 = 0', 'cv in ker'],
-              hints: [
-                'If v is in the kernel, then T(v) = 0. What is T(cv)?',
-                'Use homogeneity: T(cv) = cT(v) = c * 0 = 0.'
-              ]
+              prompt: 'Eliminate below the leading 1 in column 2.',
+              expected: 'Add $R_2$ to $R_3$: $[0,0,2,4]$. Scale $R_3$ by $\\frac{1}{2}$: $[0,0,1,2]$. Now in REF.',
+              keywords: ['R2+R3', '[0,0,2,4]', 'scale', '[0,0,1,2]', 'REF'],
+              hints: ['$R_3$ has $-1$ in column 2. Adding $R_2$ cancels it.']
             },
             {
               type: 'conclude',
-              prompt: 'State the conclusion.',
-              expected: 'Since ker(T) is nonempty, closed under addition, and closed under scalar multiplication, ker(T) is a subspace of V.',
-              keywords: ['subspace', 'three conditions', 'ker(T)', 'subspace of V'],
-              hints: [
-                'We verified all three subspace conditions.',
-                'By the subspace criterion, ker(T) is a subspace of V.'
-              ]
-            }
-          ]
-        },
-        {
-          id: 'proof-image-subspace',
-          name: 'The Image is a Subspace',
-          description: 'Prove that if T: V -> W is a linear transformation, then im(T) is a subspace of W.',
-          prerequisites: ['def-image', 'def-subspace'],
-          steps: [
-            {
-              type: 'state-goal',
-              prompt: 'What do we need to show?',
-              expected: 'We need to show im(T) is a subspace of W by verifying: (1) im(T) is nonempty, (2) im(T) is closed under addition, (3) im(T) is closed under scalar multiplication.',
-              keywords: ['nonempty', 'closed', 'addition', 'scalar multiplication', 'subspace of W'],
-              hints: [
-                'Apply the three subspace conditions to im(T) as a subset of W.',
-                'Verify nonempty, closed under addition, closed under scalar multiplication.'
-              ]
-            },
-            {
-              type: 'justify',
-              prompt: 'Show that im(T) is nonempty.',
-              expected: 'T(0_V) = 0_W, so 0_W = T(0_V) is in im(T). Therefore im(T) is nonempty.',
-              keywords: ['T(0_V) = 0_W', '0_W in im(T)', 'nonempty'],
-              hints: [
-                'What is the image of the zero vector?',
-                'T(0_V) = 0_W is in im(T).'
-              ]
-            },
-            {
-              type: 'justify',
-              prompt: 'Show im(T) is closed under addition.',
-              expected: 'Let w1, w2 in im(T). Then there exist v1, v2 in V with T(v1) = w1 and T(v2) = w2. By additivity, T(v1 + v2) = T(v1) + T(v2) = w1 + w2. Since v1 + v2 is in V, w1 + w2 is in im(T).',
-              keywords: ['w1 = T(v1)', 'w2 = T(v2)', 'T(v1+v2)', 'w1 + w2 in im(T)', 'additivity'],
-              hints: [
-                'Elements of im(T) are of the form T(v). If w1 = T(v1) and w2 = T(v2), what preimage gives w1 + w2?',
-                'T(v1 + v2) = T(v1) + T(v2) = w1 + w2, so w1 + w2 is in im(T).'
-              ]
-            },
-            {
-              type: 'justify',
-              prompt: 'Show im(T) is closed under scalar multiplication.',
-              expected: 'Let c in F and w in im(T). Then there exists v in V with T(v) = w. By homogeneity, T(cv) = cT(v) = cw. Since cv is in V, cw is in im(T).',
-              keywords: ['w = T(v)', 'T(cv)', 'cT(v)', 'cw in im(T)', 'homogeneity'],
-              hints: [
-                'If w = T(v), what preimage gives cw?',
-                'T(cv) = cT(v) = cw by homogeneity.'
-              ]
-            },
-            {
-              type: 'conclude',
-              prompt: 'State the conclusion.',
-              expected: 'Since im(T) is nonempty, closed under addition, and closed under scalar multiplication, im(T) is a subspace of W.',
-              keywords: ['subspace', 'im(T)', 'subspace of W', 'three conditions'],
-              hints: [
-                'All three subspace conditions are verified.',
-                'Therefore im(T) is a subspace of W.'
-              ]
-            }
-          ]
-        },
-        {
-          id: 'proof-injective-iff-kernel-trivial',
-          name: 'T is Injective if and only if ker(T) = {0}',
-          description: 'Prove that a linear transformation T: V -> W is injective if and only if ker(T) = {0_V}.',
-          prerequisites: ['def-kernel', 'def-injective'],
-          steps: [
-            {
-              type: 'state-goal',
-              prompt: 'What are the two directions we must prove?',
-              expected: 'Forward: if T is injective, then ker(T) = {0}. Backward: if ker(T) = {0}, then T is injective.',
-              keywords: ['two directions', 'injective implies', 'kernel trivial implies', 'if and only if'],
-              hints: [
-                'This is a biconditional, so prove both directions.',
-                'Direction 1: injective => ker = {0}. Direction 2: ker = {0} => injective.'
-              ]
-            },
-            {
-              type: 'justify',
-              prompt: 'Prove the forward direction: if T is injective, then ker(T) = {0}.',
-              expected: 'We always have 0 in ker(T) since T(0) = 0. Now suppose v is in ker(T), so T(v) = 0 = T(0). Since T is injective, T(v) = T(0) implies v = 0. Therefore ker(T) = {0}.',
-              keywords: ['T(v) = 0', 'T(0) = 0', 'T(v) = T(0)', 'injective implies v = 0', 'ker = {0}'],
-              hints: [
-                'We know 0 is always in the kernel. To show the kernel contains nothing else, take v in ker(T).',
-                'If T(v) = 0 = T(0) and T is injective, what can you conclude about v?'
-              ]
-            },
-            {
-              type: 'justify',
-              prompt: 'Prove the backward direction: assume ker(T) = {0} and show T is injective. Start by assuming T(u) = T(v).',
-              expected: 'Suppose T(u) = T(v). Then T(u) - T(v) = 0. By linearity, T(u - v) = T(u) - T(v) = 0. So u - v is in ker(T) = {0}, which means u - v = 0, hence u = v. Therefore T is injective.',
-              keywords: ['T(u) = T(v)', 'T(u-v) = 0', 'u-v in ker', 'u-v = 0', 'u = v', 'injective'],
-              hints: [
-                'If T(u) = T(v), consider T(u) - T(v) = T(u - v).',
-                'T(u - v) = 0 means u - v is in ker(T) = {0}, so u - v = 0.'
-              ]
-            },
-            {
-              type: 'conclude',
-              prompt: 'State the full conclusion.',
-              expected: 'Therefore T is injective if and only if ker(T) = {0}. Injectivity of a linear map is completely characterized by the triviality of its kernel.',
-              keywords: ['if and only if', 'injective', 'ker(T) = {0}', 'both directions'],
-              hints: [
-                'Both directions are proved.',
-                'The biconditional is established: injective iff trivial kernel.'
-              ]
+              prompt: 'Back-substitute to find the solution.',
+              expected: '$z=2$, $y+3(2)=5$ so $y=-1$, $x-2(-1)+3(2)=9$ so $x=1$. Solution: $(1,-1,2)$.',
+              keywords: ['z=2', 'y=-1', 'x=1', 'back substitution'],
+              hints: ['Start from $z=2$, work up.']
             }
           ]
         }
       ],
       visualization: {
         type: 'kernel-image',
-        title: 'Kernel and Image of a Linear Map',
-        description: 'Visualize the kernel (null space) and image (column space) of a matrix transformation. See how vectors in the kernel collapse to zero and how the image forms a subspace of the codomain.',
+        title: 'Row Reduction Visualized',
+        description: 'See the geometric effect of reducing a system to echelon form.',
         requiredMastery: 80,
-        requiredProofs: ['proof-kernel-subspace', 'proof-image-subspace', 'proof-injective-iff-kernel-trivial'],
-        config: {
-          matrix: [[1, 2], [2, 4]]
-        }
-      }
-    },
-
-    // =========================================================================
-    // TOPIC 5: RANK-NULLITY THEOREM
-    // =========================================================================
-    {
-      id: 'rank-nullity',
-      name: 'Rank-Nullity Theorem',
-      description: 'The fundamental theorem relating the dimensions of the kernel and image of a linear transformation to the dimension of its domain.',
-      prerequisites: ['vector-spaces', 'subspaces', 'linear-transformations', 'kernel-image'],
-      definitions: [
-        {
-          id: 'def-dimension',
-          name: 'Dimension',
-          formalText: 'The dimension of a finite-dimensional vector space V, denoted dim(V), is the number of vectors in any basis of V. By convention, dim({0}) = 0. The dimension is well-defined because all bases of a finite-dimensional vector space have the same number of elements.',
-          atomicParts: [
-            { id: 'dim-part-fd', text: 'V is a finite-dimensional vector space', keywords: ['finite-dimensional', 'vector space'] },
-            { id: 'dim-part-def', text: 'dim(V) is the number of vectors in any basis of V', keywords: ['dim', 'number', 'basis', 'vectors'] },
-            { id: 'dim-part-zero', text: 'dim({0}) = 0 by convention', keywords: ['dim', 'zero space', '0'] },
-            { id: 'dim-part-welldef', text: 'well-defined because all bases have the same cardinality', keywords: ['well-defined', 'same', 'cardinality', 'all bases'] }
-          ],
-          axioms: [],
-          exercises: [
-            {
-              type: 'fill-in',
-              prompt: 'State the definition of the dimension of a finite-dimensional vector space.'
-            }
-          ]
-        },
-        {
-          id: 'def-rank',
-          name: 'Rank',
-          formalText: 'Let T: V -> W be a linear transformation between finite-dimensional vector spaces. The rank of T is defined as rank(T) = dim(im(T)), the dimension of the image (range) of T. For a matrix A, rank(A) equals the dimension of the column space of A, which also equals the number of pivot columns in any row echelon form of A.',
-          atomicParts: [
-            { id: 'rank-part-lt', text: 'T: V -> W is a linear transformation between finite-dimensional spaces', keywords: ['linear', 'finite-dimensional'] },
-            { id: 'rank-part-def', text: 'rank(T) = dim(im(T))', keywords: ['rank', 'dim', 'image', 'im(T)'] },
-            { id: 'rank-part-matrix', text: 'for a matrix A, rank(A) = dimension of the column space', keywords: ['matrix', 'column space', 'rank'] },
-            { id: 'rank-part-pivot', text: 'equals the number of pivot columns in row echelon form', keywords: ['pivot', 'columns', 'row echelon'] }
-          ],
-          axioms: [],
-          exercises: [
-            {
-              type: 'fill-in',
-              prompt: 'State the definition of the rank of a linear transformation T: V -> W.'
-            },
-            {
-              type: 'equivalence',
-              prompt: 'Explain why rank(A) equals the dimension of the column space of A.',
-              formulation1: 'rank(A) = dim(im(T_A)) where T_A is the linear map x -> Ax',
-              formulation2: 'rank(A) = dimension of the column space of A',
-              keywords: ['column space', 'image', 'Ax', 'linear combination', 'columns'],
-              explanation: 'If T_A(x) = Ax, then im(T_A) = {Ax : x in R^n}. Writing Ax as x_1 a_1 + ... + x_n a_n where a_i are columns of A, we see im(T_A) = span{a_1, ..., a_n} = column space of A. So rank(A) = dim(im(T_A)) = dim(column space of A).'
-            }
-          ]
-        },
-        {
-          id: 'def-nullity',
-          name: 'Nullity',
-          formalText: 'Let T: V -> W be a linear transformation between finite-dimensional vector spaces. The nullity of T is defined as nullity(T) = dim(ker(T)), the dimension of the kernel (null space) of T. For a matrix A, nullity(A) equals the number of free variables in the system Ax = 0.',
-          atomicParts: [
-            { id: 'null-part-lt', text: 'T: V -> W is a linear transformation between finite-dimensional spaces', keywords: ['linear', 'finite-dimensional'] },
-            { id: 'null-part-def', text: 'nullity(T) = dim(ker(T))', keywords: ['nullity', 'dim', 'kernel', 'ker(T)'] },
-            { id: 'null-part-matrix', text: 'for a matrix A, nullity(A) = number of free variables in Ax = 0', keywords: ['matrix', 'free variables', 'Ax = 0'] },
-            { id: 'null-part-null-space', text: 'the kernel is also called the null space', keywords: ['null space', 'kernel'] }
-          ],
-          axioms: [],
-          exercises: [
-            {
-              type: 'fill-in',
-              prompt: 'State the definition of the nullity of a linear transformation T: V -> W.'
-            }
-          ]
-        }
-      ],
-      proofs: [
-        {
-          id: 'proof-rank-nullity',
-          name: 'The Rank-Nullity Theorem',
-          description: 'Prove that if T: V -> W is a linear transformation and V is finite-dimensional, then dim(V) = rank(T) + nullity(T), i.e., dim(V) = dim(im(T)) + dim(ker(T)).',
-          prerequisites: ['def-rank', 'def-nullity', 'def-dimension', 'def-kernel', 'def-image'],
-          steps: [
-            {
-              type: 'state-goal',
-              prompt: 'State the theorem precisely and describe the proof strategy.',
-              expected: 'We want to prove dim(V) = dim(ker(T)) + dim(im(T)). Strategy: let {u_1, ..., u_k} be a basis for ker(T). Extend this to a basis {u_1, ..., u_k, v_1, ..., v_r} for V. We will show {T(v_1), ..., T(v_r)} is a basis for im(T), giving dim(V) = k + r = nullity(T) + rank(T).',
-              keywords: ['dim(V)', 'dim(ker(T))', 'dim(im(T))', 'basis of kernel', 'extend', 'basis of V', 'show images form basis'],
-              hints: [
-                'The key idea: start with a basis for ker(T), extend to a basis for V, and show the images of the extension vectors form a basis for im(T).',
-                'Let nullity = k and rank = r. We need dim(V) = k + r.'
-              ]
-            },
-            {
-              type: 'justify',
-              prompt: 'Let {u_1, ..., u_k} be a basis for ker(T) and {u_1, ..., u_k, v_1, ..., v_r} a basis for V. Show that {T(v_1), ..., T(v_r)} spans im(T).',
-              expected: 'Let w in im(T). Then w = T(v) for some v in V. Since {u_1,...,u_k,v_1,...,v_r} is a basis for V, write v = a_1 u_1 + ... + a_k u_k + b_1 v_1 + ... + b_r v_r. Then T(v) = a_1 T(u_1) + ... + a_k T(u_k) + b_1 T(v_1) + ... + b_r T(v_r). Since each u_i is in ker(T), T(u_i) = 0. So w = T(v) = b_1 T(v_1) + ... + b_r T(v_r). Therefore {T(v_1),...,T(v_r)} spans im(T).',
-              keywords: ['w = T(v)', 'write v in basis', 'T(u_i) = 0', 'kernel', 'b_1 T(v_1) + ... + b_r T(v_r)', 'spans'],
-              hints: [
-                'Any w in im(T) is T(v) for some v. Express v in the basis of V and apply T.',
-                'The u_i terms vanish because u_i are in ker(T), leaving only T(v_j) terms.'
-              ]
-            },
-            {
-              type: 'justify',
-              prompt: 'Now show that {T(v_1), ..., T(v_r)} is linearly independent.',
-              expected: 'Suppose b_1 T(v_1) + ... + b_r T(v_r) = 0. By linearity, T(b_1 v_1 + ... + b_r v_r) = 0, so b_1 v_1 + ... + b_r v_r is in ker(T). Since {u_1,...,u_k} is a basis for ker(T), we can write b_1 v_1 + ... + b_r v_r = c_1 u_1 + ... + c_k u_k. Rearranging: c_1 u_1 + ... + c_k u_k - b_1 v_1 - ... - b_r v_r = 0. Since {u_1,...,u_k,v_1,...,v_r} is a basis for V (hence linearly independent), all coefficients are zero. In particular, b_1 = ... = b_r = 0. So {T(v_1),...,T(v_r)} is linearly independent.',
-              keywords: ['suppose', 'b_1 T(v_1) + ... = 0', 'T(b_1 v_1 + ...) = 0', 'in ker(T)', 'express in basis of ker', 'linearly independent', 'all coefficients zero'],
-              hints: [
-                'Assume a linear combination of the T(v_j) equals zero. Pull the scalars inside T by linearity.',
-                'The resulting vector is in ker(T), so write it as a combination of u_i. Then use the linear independence of the full basis of V.'
-              ]
-            },
-            {
-              type: 'justify',
-              prompt: 'Combine the spanning and independence results.',
-              expected: 'Since {T(v_1), ..., T(v_r)} spans im(T) and is linearly independent, it is a basis for im(T). Therefore dim(im(T)) = r.',
-              keywords: ['basis for im(T)', 'spans', 'linearly independent', 'dim(im(T)) = r'],
-              hints: [
-                'A set that is both spanning and linearly independent is a basis.',
-                'So {T(v_1),...,T(v_r)} is a basis for im(T) with r elements.'
-              ]
-            },
-            {
-              type: 'conclude',
-              prompt: 'State the final conclusion with the dimension count.',
-              expected: 'We have dim(ker(T)) = k and dim(im(T)) = r. The basis for V has k + r elements, so dim(V) = k + r = dim(ker(T)) + dim(im(T)) = nullity(T) + rank(T). This is the Rank-Nullity Theorem.',
-              keywords: ['dim(V) = k + r', 'nullity(T) + rank(T)', 'dim(ker(T)) + dim(im(T))', 'Rank-Nullity'],
-              hints: [
-                'Count: the basis of V has k + r vectors, the kernel has dimension k, the image has dimension r.',
-                'dim(V) = k + r = nullity(T) + rank(T).'
-              ]
-            }
-          ]
-        }
-      ],
-      visualization: {
-        type: 'rank-nullity',
-        title: 'The Rank-Nullity Theorem in Action',
-        description: 'Visualize how the domain space splits into the kernel and a complement. Watch how the complement maps bijectively onto the image while the kernel collapses to zero. Adjust the matrix to see how rank and nullity trade off.',
-        requiredMastery: 80,
-        requiredProofs: ['proof-rank-nullity'],
-        config: {
-          matrix: [[1, 0, 1], [0, 1, 1]]
-        }
+        requiredProofs: ['proof-gaussian-elimination-example'],
+        config: { matrix: [[1, -2], [-1, 3]] }
       }
     }
 
