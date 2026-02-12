@@ -171,7 +171,7 @@ window.App = (() => {
         const reqs = Visualization.getRequirements(courseId, topicId);
         html += `<div style="padding:8px 20px 16px;">`;
         for (const r of reqs) {
-          html += `<div style="font-size:13px;padding:2px 0;color:${r.met ? 'var(--green-dark)' : 'var(--text-secondary)'};">
+          html += `<div style="font-size:13px;padding:2px 0;color:${r.met ? 'var(--green)' : 'var(--text-secondary)'};">
             ${r.met ? '&#10003;' : '&#9675;'} ${_esc(r.label)} ${r.current ? '(' + r.current + ')' : ''}
           </div>`;
         }

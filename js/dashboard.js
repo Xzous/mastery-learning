@@ -130,7 +130,7 @@ window.Dashboard = (() => {
             <div>${_esc(hw.name)}</div>
             <div style="font-size:12px;font-weight:600;color:var(--text-light);margin-top:2px;">Due: ${_esc(hw.dueDate || '')}</div>
           </div>
-          <div style="font-size:14px;font-weight:800;${pct === 100 ? 'color:var(--green-dark)' : ''}">${completed}/${questions.length}</div>
+          <div style="font-size:14px;font-weight:800;${pct === 100 ? 'color:var(--green)' : ''}">${completed}/${questions.length}</div>
         </div>
         <div style="padding:0 16px 8px;">
           <div class="mini-progress" style="height:6px;margin-bottom:12px;">
@@ -197,7 +197,7 @@ window.Dashboard = (() => {
         html += `<div class="topic-section">
           <div class="topic-section-header">
             ${_esc(topic.name)}
-            <span style="float:right;font-size:14px;font-weight:800;${status === 'mastered' ? 'color:var(--green-dark)' : ''}">${mastery}%</span>
+            <span style="float:right;font-size:14px;font-weight:800;${status === 'mastered' ? 'color:var(--green)' : ''}">${mastery}%</span>
           </div>`;
 
         // Definitions

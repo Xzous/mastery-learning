@@ -66,7 +66,7 @@ window.ProofEngine = (() => {
     html += `
       <div class="lesson-card animate-slide-up" style="text-align:left;margin-top:16px;">
         <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
-          <div class="step-number" style="background:var(--blue-light);color:var(--blue-dark);">${activeStep + 1}</div>
+          <div class="step-number" style="background:var(--blue-light);color:var(--blue);">${activeStep + 1}</div>
           <span style="font-size:12px;font-weight:800;text-transform:uppercase;color:var(--blue);letter-spacing:0.5px;">
             ${_esc(_stepLabel(step.type))}
           </span>
